@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Core -->
+    <meta charset="UTF-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0A1216" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Primary SEO -->
+    <title>Φ Pay — Offline-First Sovereign Payment Terminal (Instant Settlement, No Chargebacks)</title>
+    <meta
+      name="description"
+      content="Φ Pay is an offline-first sovereign payment terminal for businesses accepting Φ (Phi) with instant settlement, no chargebacks, and verifiable receipts—no accounts, no processors, no databases."
+    />
+    <meta
+      name="keywords"
+      content="Phi Pay, Φ Pay, Phi, Phi Network, sovereign payments, offline payments, offline-first terminal, instant settlement, no chargebacks, verifiable receipts, proof of payment, memory krystal, sigil glyphs, Kairos, Kai-Klok, Kai Signature, BJ Klock, pay.phi.network"
+    />
+    <meta name="author" content="BJ Klock" />
+
+    <!-- Indexing Controls -->
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+
+    <!-- Canonical + Language -->
+    <link rel="canonical" href="https://pay.phi.network/" />
+    <link rel="alternate" href="https://pay.phi.network/" hreflang="en" />
+
+    <!-- Icons / PWA -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Φ Pay" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Φ Pay — Offline-First Sovereign Payment Terminal" />
+    <meta
+      property="og:description"
+      content="Accept Φ with instant settlement and verifiable receipts—offline-first, no accounts, no processors, no chargebacks."
+    />
+    <meta property="og:url" content="https://pay.phi.network/" />
+    <meta property="og:image" content="https://pay.phi.network/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Φ Pay — Offline-First Sovereign Payment Terminal (Instant Settlement, Verifiable Receipts)" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Φ Pay — Offline-First Sovereign Payment Terminal" />
+    <meta
+      name="twitter:description"
+      content="Accept Φ with instant settlement and verifiable receipts—offline-first, no accounts, no processors, no chargebacks."
+    />
+    <meta name="twitter:image" content="https://pay.phi.network/og-image.png" />
+    <meta name="twitter:site" content="@phi_network" />
+
+    <!-- Fonts (optional, remove if you want 100% zero external dependencies) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Apple Web App -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Φ Pay" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+    <!-- Structured Data (Schema.org) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://pay.phi.network/#org",
+            "name": "Φ Network",
+            "alternateName": "Phi Network",
+            "url": "https://phi.network/",
+            "logo": "https://phi.network/logo.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://pay.phi.network/#website",
+            "url": "https://pay.phi.network/",
+            "name": "Φ Pay",
+            "publisher": { "@id": "https://pay.phi.network/#org" },
+            "inLanguage": "en",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://pay.phi.network/search?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://pay.phi.network/#app",
+            "name": "Φ Pay",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Web",
+            "url": "https://pay.phi.network/",
+            "publisher": { "@id": "https://pay.phi.network/#org" },
+            "description": "Offline-first sovereign payment terminal for accepting Φ (Phi) with instant settlement, no chargebacks, and verifiable receipts—no accounts, no processors, no databases."
+          }
+        ]
+      }
+    </script>
+
+    <!-- Vite Entry -->
+    <script type="module" src="/src/main.tsx"></script>
+  </head>
+
+  <body
+    style="
+      margin:0;
+      min-height:100vh;
+      background:#0A1216;
+      color:#F2FFFC;
+      font: 500 15px/1.5 Inter, system-ui, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      text-rendering:optimizeLegibility;
+      letter-spacing:-0.01em;
+      overflow-x:hidden;
+    "
+  >
+    <noscript>Φ Pay requires JavaScript enabled to run.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
