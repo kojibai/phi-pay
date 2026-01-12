@@ -497,11 +497,15 @@ export function PortalView(props: {
             <div className="pt-card pt-qrPanel">
               <div className="pt-cardInner">
                 {activeInvoiceUrl ? (
-                  <InvoiceQR
-                    value={activeInvoiceUrl}
-                    size={220}
-                    label={activeInvoiceId ? `Invoice ${activeInvoiceId.slice(0, 6)}…` : "Invoice"}
-                  />
+                  <div className="pt-qrReady">
+                    <div className="pt-qrReadyTitle">
+                      {activeInvoiceId ? `Invoice ${activeInvoiceId.slice(0, 6)}…` : "Invoice ready"}
+                    </div>
+                    <div className="pt-qrPlaceholder">QR appears only in the popover.</div>
+                    <button className="pt-btn" type="button" onClick={() => setQrOpen(true)}>
+                      Open QR
+                    </button>
+                  </div>
                 ) : (
                   <div className="pt-qrPlaceholder">Create invoice to display QR</div>
                 )}
