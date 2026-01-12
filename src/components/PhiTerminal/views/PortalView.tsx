@@ -133,12 +133,16 @@ export function PortalView(props: {
   }, [props.onVerifyOwnerPresence, store]);
 
   const armFromGlyph = useCallback(async (file: File) => {
-    const { session, anchorText } = await createArmedPortalSessionFromGlyph(file);
-    anchorTextRef.current = anchorText;
-    await PortalDB.clearAll();
-    await PortalDB.putSession(session);
-    await store.refresh();
-    setMsg("Merchant glyph loaded. Ready to open.");
+    try {
+      const { session, anchorText } = await createArmedPortalSessionFromGlyph(file);
+      anchorTextRef.current = anchorText;
+      await PortalDB.clearAll();
+      await PortalDB.putSession(session);
+      await store.refresh();
+      setMsg("Merchant glyph loaded. Ready to open.");
+    } catch (err) {
+      setMsg((err as Error)?.message ?? "Failed to load merchant glyph.");
+    }
   }, [store]);
 
   const ingestInvoice = useCallback(async (invoice: PhiInvoiceV1) => {
