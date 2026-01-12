@@ -57,6 +57,7 @@ export function PortalView(props: {
 
   const [activeInvoiceUrl, setActiveInvoiceUrl] = useState<string | null>(null);
   const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
 
   const anchorTextRef = useRef<string | null>(null);
 
@@ -185,11 +186,16 @@ export function PortalView(props: {
 
     if (res.matchedInvoice && settlement.invoiceId) {
       await PortalDB.setInvoiceStatus(settlement.invoiceId, "SETTLED");
+      if (settlement.invoiceId === activeInvoiceId) {
+        setActiveInvoiceUrl(null);
+        setActiveInvoiceId(null);
+        setQrOpen(false);
+      }
     }
 
     setMsg(res.note);
     await store.refresh();
-  }, [store]);
+  }, [activeInvoiceId, store]);
 
   // Local broadcast ingest (optional, but great for multi-tab / companion-wallet flows)
   React.useEffect(() => {
@@ -263,6 +269,7 @@ export function PortalView(props: {
 
     setActiveInvoiceId(inv.invoiceId);
     setActiveInvoiceUrl(url);
+    setQrOpen(true);
     setMsg("Invoice created.");
   }, [amountPhi, memo, store.session]);
 
@@ -308,6 +315,7 @@ export function PortalView(props: {
 
     setActiveInvoiceUrl(null);
     setActiveInvoiceId(null);
+    setQrOpen(false);
 
     setMsg("Portal CLOSED and Settlement Glyph minted.");
   }, [props.onVerifyOwnerPresence, store]);
@@ -602,6 +610,30 @@ export function PortalView(props: {
           setScanOpen(false);
         }}
       />
+
+      {activeInvoiceUrl && qrOpen ? (
+        <div className="pt-qrOverlay" role="dialog" aria-modal="true">
+          <div className="pt-qrModal" onClick={(e) => e.stopPropagation()}>
+            <div className="pt-qrModalHeader">
+              <div className="pt-qrModalTitle">
+                {activeInvoiceId ? `Invoice ${activeInvoiceId.slice(0, 6)}…` : "Invoice"}
+              </div>
+              <button
+                type="button"
+                className="pt-qrModalClose"
+                aria-label="Close QR"
+                onClick={() => setQrOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="pt-qrModalBody">
+              <InvoiceQR value={activeInvoiceUrl} size={280} label="Scan to Pay" />
+              <div className="pt-qrModalHint">Scan to pay • Closes automatically after receipt</div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
