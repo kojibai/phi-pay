@@ -47,6 +47,20 @@ function extractLabelFromUnknown(u: unknown): string | null {
   return typeof label === "string" ? label : null;
 }
 
+function extractKaiSignatureFromUnknown(u: unknown): string | null {
+  if (!u || typeof u !== "object") return null;
+  const o = u as Record<string, unknown>;
+  const direct = o["kaiSignature"] ?? o["kaiSig"] ?? o["ΣSig"] ?? o["signature"];
+  if (typeof direct === "string" && direct.length > 10) return direct;
+  const proof = o["proofCapsule"];
+  if (proof && typeof proof === "object") {
+    const po = proof as Record<string, unknown>;
+    const sig = po["kaiSignature"] ?? po["kaiSig"] ?? po["ΣSig"] ?? po["signature"];
+    if (typeof sig === "string" && sig.length > 10) return sig;
+  }
+  return null;
+}
+
 function extractPhiKeyFromSvgText(svgText: string): string | null {
   const match = svgText.match(/data-phi-key=["']([^"']+)["']/i) ?? svgText.match(/phiKey=["']([^"']+)["']/i);
   if (!match) return null;
@@ -64,6 +78,12 @@ function tryParseSvgMetadata(svgText: string): unknown | null {
     auth.userPhiKey ??
     extractPhiKeyFromUnknown(auth.meta ?? null);
 
+  const kaiSignature =
+    auth.kaiSignature ??
+    embedded.kaiSignature ??
+    extractKaiSignatureFromUnknown(embedded.raw ?? null) ??
+    extractKaiSignatureFromUnknown(auth.meta ?? null);
+
   const svgPhiKey = extractPhiKeyFromSvgText(svgText);
   const resolvedKey = phiKey ?? svgPhiKey;
 
@@ -73,6 +93,7 @@ function tryParseSvgMetadata(svgText: string): unknown | null {
       merchantLabel:
         extractLabelFromUnknown(embedded.raw ?? null) ??
         extractLabelFromUnknown(auth.meta ?? null),
+      kaiSignature,
       proofCapsule: embedded.proofCapsule,
       raw: embedded.raw,
     };
@@ -101,11 +122,13 @@ export async function createArmedPortalSessionFromGlyph(file: File): Promise<{
   const merchantPhiKey = extractPhiKeyFromUnknown(payload) ?? "";
   if (!merchantPhiKey) throw new Error("Could not extract phiKey from merchant glyph metadata.");
 
-  const merchantLabel = extractLabelFromUnknown(payload) ?? file.name.replace(/\.(svg|json)$/i, "");
+  const merchantLabel = extractLabelFromUnknown(payload) ?? "Merchant";
+  const kaiSignature = extractKaiSignatureFromUnknown(payload);
 
   const portalHeader = {
     merchantPhiKey,
     merchantLabel,
+    kaiSignature,
     anchorHash,
     anchorName: file.name,
     anchorKind,
@@ -122,6 +145,7 @@ export async function createArmedPortalSessionFromGlyph(file: File): Promise<{
 
     merchantPhiKey,
     merchantLabel,
+    kaiSignature: kaiSignature ?? undefined,
 
     status: "ARMED",
     openedAtMs: Date.now(),

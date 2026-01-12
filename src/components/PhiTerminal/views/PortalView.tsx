@@ -15,6 +15,7 @@ import { closePortalSession } from "../portal/portalClose";
 import { buildPortalSettlementSvg, patchAnchorSvgWithPortalMeta } from "../portal/portalExport";
 import { usePortalStore } from "../hooks/usePortalStore";
 import { usePhiUsd } from "../pricing/usePhiUsd";
+import { PhiGlyph } from "../ui/PhiGlyph";
 import {
   formatUsdFromMicroPhi,
   microPhiFromPhiInput,
@@ -38,6 +39,13 @@ function downloadText(filename: string, text: string, mime: string) {
 function shortKey(key: string) {
   if (!key) return "";
   return `${key.slice(0, 6)}…${key.slice(-4)}`;
+}
+
+function shortSig(sig?: string) {
+  if (!sig) return "—";
+  const trimmed = sig.trim();
+  if (trimmed.length <= 12) return trimmed;
+  return `${trimmed.slice(0, 8)}…${trimmed.slice(-4)}`;
 }
 
 function trimTrailingZeros(input: string): string {
@@ -76,14 +84,14 @@ export function PortalView(props: {
   const amountUsd = useMemo(() => formatUsdFromMicroPhi(microPhi, rate.usdPerPhi), [microPhi, rate.usdPerPhi]);
 
   const primaryDisplay = primaryUnit === "phi"
-    ? `${amountPhi} Φ`
+    ? amountPhi
     : amountUsd
       ? `$${amountUsd}`
       : "—";
 
   const secondaryDisplay = primaryUnit === "phi"
     ? amountUsd ? `$${amountUsd}` : "—"
-    : `${amountPhi} Φ`;
+    : amountPhi;
 
   const applyAmountInput = useCallback((nextValue: string, unit = primaryUnit) => {
     setAmountInput(nextValue);
@@ -447,9 +455,22 @@ export function PortalView(props: {
     <div className="pt-portal">
       <header className="pt-portalHeader">
         <div className="pt-merchantBlock">
-          <div className="pt-merchantLabel">{store.stats.merchantLabel || "Merchant"}</div>
-          <div className="pt-merchantKey">{shortKey(store.stats.merchantPhiKey)}</div>
-          <div className="pt-merchantMeta">{store.stats.receiveCount} receives • {store.stats.totalPhi} Φ</div>
+          <div className="pt-merchantLabel">{store.stats.merchantLabel || "Portal Register"}</div>
+          <div className="pt-headPills">
+            <div className="pt-pill pt-pill--glow" title={store.stats.merchantPhiKey}>
+              <PhiGlyph className="pt-phiIcon pt-phiIcon--pill" /> Key{" "}
+              <span className="pt-pillMono">{shortKey(store.stats.merchantPhiKey)}</span>
+            </div>
+            <div className="pt-pill pt-pill--glow" title={store.stats.kaiSignature || "—"}>
+              ΣSig <span className="pt-pillMono">{shortSig(store.stats.kaiSignature)}</span>
+            </div>
+            <div className="pt-pill pt-pill--aqua">
+              {store.stats.receiveCount} Receives
+            </div>
+            <div className="pt-pill pt-pill--gold">
+              <PhiGlyph className="pt-phiIcon pt-phiIcon--pill" /> {store.stats.totalPhi}
+            </div>
+          </div>
         </div>
         <div className="pt-headerActions">
           <Pill tone={tone as any} text={status} />
@@ -497,7 +518,7 @@ export function PortalView(props: {
                       className={primaryUnit === "phi" ? "pt-unitBtn active" : "pt-unitBtn"}
                       onClick={() => handleToggleUnit("phi")}
                     >
-                      Φ
+                      <PhiGlyph className="pt-phiIcon pt-phiIcon--unit" />
                     </button>
                     <button
                       type="button"
@@ -509,10 +530,17 @@ export function PortalView(props: {
                     </button>
                   </div>
                 </div>
-                <div className="pt-amountPrimary">{primaryDisplay}</div>
-                <div className="pt-amountSecondary">{secondaryDisplay}</div>
+                <div className="pt-amountPrimary">
+                  {primaryDisplay}
+                  {primaryUnit === "phi" ? <PhiGlyph className="pt-phiIcon pt-phiIcon--amount" /> : null}
+                </div>
+                <div className="pt-amountSecondary">
+                  {secondaryDisplay}
+                  {primaryUnit === "usd" ? <PhiGlyph className="pt-phiIcon pt-phiIcon--amount" /> : null}
+                </div>
                 <div className="pt-rateLine">
-                  Rate: {rateAvailable ? `$${(rate.usdPerPhi ?? 0).toFixed(4)} / Φ` : "—"}
+                  Rate: {rateAvailable ? `$${(rate.usdPerPhi ?? 0).toFixed(4)} /` : "—"}
+                  {rateAvailable ? <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" /> : null}
                   <span className={`pt-rateStatus ${rate.status}`}>{rate.status}</span>
                 </div>
                 <input
@@ -577,7 +605,9 @@ export function PortalView(props: {
                   <div className="pt-muted">No receipts yet.</div>
                 ) : recentReceipts.map((r) => (
                   <div className="pt-receiptChip" key={r.settlementId}>
-                    <div className="pt-receiptAmount">{r.amountPhi} Φ</div>
+                    <div className="pt-receiptAmount">
+                      {r.amountPhi} <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                    </div>
                     <div className="pt-receiptMeta">{r.fromPhiKey.slice(0, 6)}…</div>
                   </div>
                 ))}

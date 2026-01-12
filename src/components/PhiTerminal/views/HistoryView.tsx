@@ -1,6 +1,7 @@
 import React from "react";
 import { useTerminalStore } from "../hooks/useTerminalStore";
 import { Pill } from "../ui/Pill";
+import { PhiGlyph } from "../ui/PhiGlyph";
 
 export function HistoryView() {
   const store = useTerminalStore();
@@ -33,7 +34,9 @@ export function HistoryView() {
               <div className="pt-item" key={row.invoiceId}>
                 <div className="pt-itemTop">
                   <div>
-                    <div className="pt-itemTitle">{inv.amount.phi} Φ</div>
+                    <div className="pt-itemTitle">
+                      {inv.amount.phi} <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                    </div>
                     <div className="pt-itemSub">
                       {inv.merchantLabel ?? "Merchant"} • {inv.invoiceId.slice(0, 10)}…
                     </div>
@@ -72,7 +75,9 @@ export function HistoryView() {
               <div className="pt-item" key={row.settlementId}>
                 <div className="pt-itemTop">
                   <div>
-                    <div className="pt-itemTitle">{s.amount.phi} Φ</div>
+                    <div className="pt-itemTitle">
+                      {s.amount.phi} <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                    </div>
                     <div className="pt-itemSub">
                       From {s.fromPhiKey.slice(0, 8)}…{s.fromPhiKey.slice(-6)}
                     </div>

@@ -5,6 +5,7 @@ import { decodePayloadFromText, decodePayloadFromFile, ingestPayload } from "../
 import { Pill } from "../ui/Pill";
 import { deriveSettlementFromSendSigilFileForInvoices, markSendSigilUsedFromMeta } from "../transport/sigilSettlement";
 import { TerminalDB } from "../storage/terminalDB";
+import { PhiGlyph } from "../ui/PhiGlyph";
 
 export function InboxView() {
   const store = useTerminalStore();
@@ -81,7 +82,9 @@ export function InboxView() {
               <div className="pt-item" key={row.settlementId}>
                 <div className="pt-itemTop">
                   <div>
-                    <div className="pt-itemTitle">{s.amount.phi} Φ</div>
+                    <div className="pt-itemTitle">
+                      {s.amount.phi} <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                    </div>
                     <div className="pt-itemSub">
                       From {s.fromPhiKey.slice(0, 8)}…{s.fromPhiKey.slice(-6)}
                     </div>

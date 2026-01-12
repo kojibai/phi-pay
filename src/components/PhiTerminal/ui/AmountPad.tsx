@@ -4,6 +4,7 @@ import {
   normalizeUsdInput,
   type UnitMode,
 } from "../pricing/amountModel";
+import { PhiGlyph } from "./PhiGlyph";
 
 function addDigit(current: string, d: string, mode: UnitMode): string {
   if (!/^\d$/.test(d)) return current;
@@ -45,7 +46,13 @@ export function AmountPad(props: {
             className="pt-padQuickBtn"
             onClick={() => props.onChange(normalize(q, props.mode))}
           >
-            {props.mode === "usd" ? `$${q}` : `${q} Φ`}
+            {props.mode === "usd" ? (
+              `$${q}`
+            ) : (
+              <>
+                {q} <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+              </>
+            )}
           </button>
         ))}
         <button
