@@ -769,6 +769,59 @@ body,
   gap: 8px;
 }
 
+.pt-pay{
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.pt-payCard{
+  width: 100%;
+  max-width: 420px;
+}
+
+.pt-payHeader{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pt-payInvoice{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.pt-payRow{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.pt-payActions{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pt-payHint{
+  font-size: 12px;
+  color: var(--inkDim);
+}
+
+.pt-payReceipt{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
 @media (max-width: 480px){
   .pt-amountPrimary{
     font-size: 36px;
