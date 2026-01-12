@@ -80,7 +80,15 @@ export const TerminalDB = {
     return tx("readonly", async (t) => {
       const idx = t.objectStore("invoices").index("status");
       const rows = await reqP(idx.getAll("OPEN"));
+      rows.sort((a: InvoiceRow, b: InvoiceRow) => b.createdAtMs - a.createdAtMs);
       return rows.map((r: InvoiceRow) => r.invoice);
+    });
+  },
+
+  async getInvoice(invoiceId: string): Promise<PhiInvoiceV1 | null> {
+    return tx("readonly", async (t) => {
+      const row = await reqP(t.objectStore("invoices").get(invoiceId));
+      return (row as InvoiceRow | undefined)?.invoice ?? null;
     });
   },
 

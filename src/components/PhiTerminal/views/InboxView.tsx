@@ -3,6 +3,8 @@ import { useTerminalStore } from "../hooks/useTerminalStore";
 import { ScanSheet } from "../ui/ScanSheet";
 import { decodePayloadFromText, decodePayloadFromFile, ingestPayload } from "../transport/ingestTransport";
 import { Pill } from "../ui/Pill";
+import { deriveSettlementFromSendSigilFileForInvoices, markSendSigilUsedFromMeta } from "../transport/sigilSettlement";
+import { TerminalDB } from "../storage/terminalDB";
 
 export function InboxView() {
   const store = useTerminalStore();
@@ -17,8 +19,17 @@ export function InboxView() {
 
   const ingestFile = useCallback(async (file: File) => {
     const payload = await decodePayloadFromFile(file);
-    if (!payload) return;
-    await ingestPayload(payload);
+    if (payload) {
+      await ingestPayload(payload);
+      await store.refresh();
+      return;
+    }
+
+    const openInvoices = await TerminalDB.getOpenInvoices();
+    const derived = await deriveSettlementFromSendSigilFileForInvoices(file, openInvoices);
+    if (!derived) return;
+    markSendSigilUsedFromMeta(derived.meta);
+    await ingestPayload(derived.settlement);
     await store.refresh();
   }, [store]);
 
