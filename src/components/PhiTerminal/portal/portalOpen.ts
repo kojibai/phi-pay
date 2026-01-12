@@ -2,6 +2,7 @@ import { sha256Hex } from "../crypto/sha256";
 import type { PhiPortalMetaV1, PhiPortalSessionV1 } from "./portalTypes";
 import { microToPhiString } from "./phiMath";
 import { extractSigilAuthFromSvg } from "../../../utils/sigilAuthExtract";
+import { extractEmbeddedMetaFromSvg } from "../../../utils/sigilMetadata";
 
 function safeParseJson(s: string): unknown {
   try { return JSON.parse(s); } catch { return null; }
@@ -47,65 +48,27 @@ function extractLabelFromUnknown(u: unknown): string | null {
 }
 
 function tryParseSvgMetadata(svgText: string): unknown | null {
+  const embedded = extractEmbeddedMetaFromSvg(svgText);
   const auth = extractSigilAuthFromSvg(svgText);
-  let bestPayload: Record<string, unknown> | null =
-    auth.meta && typeof auth.meta === "object"
-      ? (auth.meta as Record<string, unknown>)
-      : null;
 
-  try {
-    const doc = new DOMParser().parseFromString(svgText, "image/svg+xml");
-    const svg = doc.querySelector("svg");
-    const attrPhiKey =
-      svg?.getAttribute("data-phi-key") ??
-      svg?.getAttribute("data-merchant-phi-key") ??
-      svg?.getAttribute("data-user-phi-key") ??
-      svg?.getAttribute("data-phiKey");
-    if (attrPhiKey && attrPhiKey.length > 10) {
-      bestPayload = { ...(bestPayload ?? {}), phiKey: attrPhiKey };
-    }
+  const phiKey =
+    embedded.phiKey ??
+    embedded.proofCapsule?.phiKey ??
+    auth.userPhiKey ??
+    extractPhiKeyFromUnknown(auth.meta ?? null);
 
-    const metas = Array.from(doc.querySelectorAll("metadata"));
-    for (const meta of metas) {
-      const raw = meta.textContent?.trim();
-      if (!raw) continue;
-      const cdataMatch = raw.match(/^<!\[CDATA\[(.*)\]\]>$/s);
-      const txt = cdataMatch ? cdataMatch[1].trim() : raw;
-      const parsed = safeParseJson(txt);
-      if (parsed && extractPhiKeyFromUnknown(parsed)) {
-        bestPayload = parsed as Record<string, unknown>;
-        break;
-      }
-    }
-  } catch {
-    // fallback to regex parsing below
+  if (phiKey) {
+    return {
+      phiKey,
+      merchantLabel:
+        extractLabelFromUnknown(embedded.raw ?? null) ??
+        extractLabelFromUnknown(auth.meta ?? null),
+      proofCapsule: embedded.proofCapsule,
+      raw: embedded.raw,
+    };
   }
 
-  const attrMatch = svgText.match(/data-phi-key=["']([^"']+)["']/i);
-  if (!bestPayload && attrMatch && attrMatch[1]?.length > 10) {
-    bestPayload = { phiKey: attrMatch[1] };
-  }
-
-  if (!bestPayload) {
-    const jsonMatches = svgText.matchAll(/<!\[CDATA\[(\{[\s\S]*?\})\]\]>/g);
-    for (const match of jsonMatches) {
-      const parsed = safeParseJson(match[1]);
-      if (parsed && extractPhiKeyFromUnknown(parsed)) {
-        bestPayload = parsed as Record<string, unknown>;
-        break;
-      }
-    }
-  }
-
-  if (!bestPayload && auth.userPhiKey) {
-    bestPayload = { phiKey: auth.userPhiKey };
-  }
-
-  if (bestPayload && auth.meta && auth.meta !== bestPayload) {
-    return { ...auth.meta, ...bestPayload };
-  }
-
-  return bestPayload ?? auth.meta ?? null;
+  return embedded.raw ?? auth.meta ?? null;
 }
 
 export async function createArmedPortalSessionFromGlyph(file: File): Promise<{
