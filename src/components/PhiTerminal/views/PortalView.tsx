@@ -112,12 +112,15 @@ export function PortalView(props: {
     return "neutral";
   }, [status]);
 
-  const clearActiveInvoice = useCallback((note?: string) => {
+  const clearActiveInvoice = useCallback(async (note?: string) => {
+    if (activeInvoiceId) {
+      await PortalDB.setInvoiceStatus(activeInvoiceId, "CANCELED");
+    }
     setActiveInvoiceUrl(null);
     setActiveInvoiceId(null);
     setQrOpen(false);
     if (note) setMsg(note);
-  }, []);
+  }, [activeInvoiceId]);
 
   const openPortal = useCallback(async () => {
     if (!store.session) return;
@@ -199,7 +202,7 @@ export function PortalView(props: {
     if (res.matchedInvoice && settlement.invoiceId) {
       await PortalDB.setInvoiceStatus(settlement.invoiceId, "SETTLED");
       if (settlement.invoiceId === activeInvoiceId) {
-        clearActiveInvoice();
+        void clearActiveInvoice();
       }
     }
 
@@ -264,6 +267,10 @@ export function PortalView(props: {
       return;
     }
 
+    if (activeInvoiceId) {
+      await PortalDB.setInvoiceStatus(activeInvoiceId, "CANCELED");
+    }
+
     const inv = await createInvoice({
       merchantPhiKey: store.session.meta.merchantPhiKey,
       merchantLabel: store.session.meta.merchantLabel,
@@ -281,7 +288,7 @@ export function PortalView(props: {
     setActiveInvoiceUrl(url);
     setQrOpen(true);
     setMsg("Invoice created.");
-  }, [amountPhi, memo, store.session]);
+  }, [activeInvoiceId, amountPhi, memo, store.session]);
 
   const closePortal = useCallback(async () => {
     if (!store.session) return;
@@ -323,7 +330,7 @@ export function PortalView(props: {
     await PortalDB.putSession(closedSession);
     await store.refresh();
 
-    clearActiveInvoice();
+    void clearActiveInvoice();
 
     setMsg("Portal CLOSED and Settlement Glyph minted.");
   }, [clearActiveInvoice, props.onVerifyOwnerPresence, store]);
@@ -514,7 +521,7 @@ export function PortalView(props: {
                       <button className="pt-btn" type="button" onClick={() => setQrOpen(true)}>
                         Open QR
                       </button>
-                      <button className="pt-btn bad" type="button" onClick={() => clearActiveInvoice("Invoice cleared.")}>
+                      <button className="pt-btn bad" type="button" onClick={() => void clearActiveInvoice("Invoice cleared.")}>
                         Clear Invoice
                       </button>
                     </div>
