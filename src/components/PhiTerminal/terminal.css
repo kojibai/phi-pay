@@ -439,6 +439,10 @@ body,
   gap: 6px;
 }
 
+.pt-amountCard{
+  flex-shrink: 0;
+}
+
 .pt-amountPrimary{
   font-size: 44px;
   font-weight: 900;
