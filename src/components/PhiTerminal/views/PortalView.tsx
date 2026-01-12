@@ -23,6 +23,7 @@ import {
   usdCentsFromUsdInput,
   type UnitMode,
 } from "../pricing/amountModel";
+import { deriveSettlementFromSendSigilFileForInvoices, markSendSigilUsedFromMeta } from "../transport/sigilSettlement";
 
 function downloadText(filename: string, text: string, mime: string) {
   const blob = new Blob([text], { type: mime });
@@ -254,7 +255,14 @@ export function PortalView(props: {
   const ingestFile = useCallback(async (file: File) => {
     const payload = await decodePayloadFromFile(file);
     if (!payload) {
-      setMsg("Could not parse file.");
+      const openInvoices = await PortalDB.getOpenInvoices();
+      const derived = await deriveSettlementFromSendSigilFileForInvoices(file, openInvoices, activeInvoiceId ?? undefined);
+      if (!derived) {
+        setMsg("Could not parse file.");
+        return;
+      }
+      markSendSigilUsedFromMeta(derived.meta);
+      await ingestSettlement(derived.settlement);
       return;
     }
     if ((payload as any).v === "PHI-INVOICE-1") {

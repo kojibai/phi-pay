@@ -8,6 +8,7 @@ import { ScanSheet } from "../ui/ScanSheet";
 import { decodePayloadFromText, decodePayloadFromFile, ingestPayload } from "../transport/ingestTransport";
 import { Pill } from "../ui/Pill";
 import { listenLocalChannel } from "../transport/broadcastChannelTransport";
+import { deriveSettlementFromSendSigilFileForInvoices, markSendSigilUsedFromMeta } from "../transport/sigilSettlement";
 
 export function ChargeView(props: {
   merchantPhiKey: string;
@@ -73,8 +74,20 @@ export function ChargeView(props: {
 
   const ingestFile = useCallback(async (file: File) => {
     const payload = await decodePayloadFromFile(file);
-    if (!payload) return;
-    const res = await ingestPayload(payload);
+    if (payload) {
+      const res = await ingestPayload(payload);
+      if (res.ok && res.kind === "settlement" && res.matchedInvoiceId && res.matchedInvoiceId === activeInvoiceId) {
+        setStatus("SETTLED");
+      }
+      return;
+    }
+
+    const invoiceHint = activeInvoiceId ? await TerminalDB.getInvoice(activeInvoiceId) : null;
+    const openInvoices = invoiceHint ? [invoiceHint] : await TerminalDB.getOpenInvoices();
+    const derived = await deriveSettlementFromSendSigilFileForInvoices(file, openInvoices, activeInvoiceId ?? undefined);
+    if (!derived) return;
+    markSendSigilUsedFromMeta(derived.meta);
+    const res = await ingestPayload(derived.settlement);
     if (res.ok && res.kind === "settlement" && res.matchedInvoiceId && res.matchedInvoiceId === activeInvoiceId) {
       setStatus("SETTLED");
     }
