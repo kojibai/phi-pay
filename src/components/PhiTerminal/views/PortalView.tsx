@@ -60,6 +60,7 @@ export function PortalView(props: {
   const [amountMicroPhi, setAmountMicroPhi] = useState(() => microPhiFromPhiInput("0").toString());
   const [memo, setMemo] = useState("");
 
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
   const [activeInvoiceUrl, setActiveInvoiceUrl] = useState<string | null>(null);
   const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
@@ -270,40 +271,47 @@ export function PortalView(props: {
   }, [ingestInvoice, ingestSettlement]);
 
   const createSessionInvoice = useCallback(async () => {
-    const session = store.session ?? await PortalDB.getSession();
-    if (!session) {
-      setMsg("No active portal session.");
-      return;
-    }
-    if (session.meta.status !== "OPEN") {
-      setMsg("Open the portal first.");
-      return;
-    }
+    if (creatingInvoice) return;
+    setCreatingInvoice(true);
+    try {
+      const session = await PortalDB.getSession();
+      if (!session) {
+        setMsg("No active portal session.");
+        return;
+      }
+      if (session.meta.status !== "OPEN") {
+        setMsg("Open the portal first.");
+        return;
+      }
 
-    if (!store.session) {
       store.setSession(session);
+      await store.refresh();
+
+      await clearActiveInvoice();
+
+      const inv = await createInvoice({
+        merchantPhiKey: session.meta.merchantPhiKey,
+        merchantLabel: session.meta.merchantLabel,
+        amountPhi,
+        memo: memo.trim() || undefined,
+        createdPulse: 0,
+      });
+
+      await PortalDB.putInvoice(inv, "OPEN");
+
+      const r = b64urlEncodeString(JSON.stringify(inv));
+      const url = `${window.location.origin}${window.location.pathname}?r=${r}`;
+
+      setActiveInvoiceId(inv.invoiceId);
+      setActiveInvoiceUrl(url);
+      setQrOpen(true);
+      setMsg("Invoice created.");
+    } catch (err) {
+      setMsg((err as Error)?.message ?? "Failed to create invoice.");
+    } finally {
+      setCreatingInvoice(false);
     }
-
-    await clearActiveInvoice();
-
-    const inv = await createInvoice({
-      merchantPhiKey: session.meta.merchantPhiKey,
-      merchantLabel: session.meta.merchantLabel,
-      amountPhi,
-      memo: memo.trim() || undefined,
-      createdPulse: 0,
-    });
-
-    await PortalDB.putInvoice(inv, "OPEN");
-
-    const r = b64urlEncodeString(JSON.stringify(inv));
-    const url = `${window.location.origin}${window.location.pathname}?r=${r}`;
-
-    setActiveInvoiceId(inv.invoiceId);
-    setActiveInvoiceUrl(url);
-    setQrOpen(true);
-    setMsg("Invoice created.");
-  }, [amountPhi, clearActiveInvoice, memo, store]);
+  }, [amountPhi, clearActiveInvoice, creatingInvoice, memo, store]);
 
   const closePortal = useCallback(async () => {
     if (!store.session) return;
@@ -514,7 +522,12 @@ export function PortalView(props: {
             />
 
             <div className="pt-actionRow">
-              <button className="pt-btn primary" type="button" onClick={() => void createSessionInvoice()}>
+              <button
+                className="pt-btn primary"
+                type="button"
+                onClick={() => void createSessionInvoice()}
+                disabled={creatingInvoice}
+              >
                 Create QR
               </button>
               <button className="pt-btn" type="button" onClick={() => setScanOpen(true)}>
