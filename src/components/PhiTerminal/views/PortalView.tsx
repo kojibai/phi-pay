@@ -125,11 +125,9 @@ export function PortalView(props: {
 
   React.useEffect(() => {
     if (!store.session || store.session.meta.status !== "OPEN") {
-      setActiveInvoiceUrl(null);
-      setActiveInvoiceId(null);
-      setQrOpen(false);
+      void clearActiveInvoice();
     }
-  }, [store.session]);
+  }, [clearActiveInvoice, store.session]);
 
   const openPortal = useCallback(async () => {
     if (!store.session) return;
