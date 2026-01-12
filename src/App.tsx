@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { PortalView } from "./components/PhiTerminal/PhiTerminal";
+import { PayView } from "./components/PhiTerminal/views/PayView";
 import "./components/PhiTerminal/terminal.css";
 
 const shellStyle: React.CSSProperties = {
@@ -38,10 +39,20 @@ export default function App() {
     }
   }, [needRefresh, updateServiceWorker]);
 
+  const hasInvoiceParam = useMemo(() => {
+    try {
+      const url = new URL(window.location.href);
+      const r = url.searchParams.get("r") ?? new URLSearchParams(url.hash.replace(/^#/, "")).get("r");
+      return Boolean(r);
+    } catch {
+      return false;
+    }
+  }, []);
+
   return (
     <div style={shellStyle}>
       <div style={panelStyle}>
-        <PortalView />
+        {hasInvoiceParam ? <PayView /> : <PortalView />}
       </div>
     </div>
   );
