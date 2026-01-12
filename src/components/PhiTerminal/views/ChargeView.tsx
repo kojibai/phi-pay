@@ -9,6 +9,7 @@ import { decodePayloadFromText, decodePayloadFromFile, ingestPayload } from "../
 import { Pill } from "../ui/Pill";
 import { listenLocalChannel } from "../transport/broadcastChannelTransport";
 import { deriveSettlementFromSendSigilFileForInvoices, markSendSigilUsedFromMeta } from "../transport/sigilSettlement";
+import { PhiGlyph } from "../ui/PhiGlyph";
 
 export function ChargeView(props: {
   merchantPhiKey: string;
@@ -110,7 +111,9 @@ export function ChargeView(props: {
         <div className="pt-cardInner">
           <div className="pt-h1">Charge</div>
 
-          <div className="pt-amount">{amountPhi} Φ</div>
+          <div className="pt-amount">
+            {amountPhi} <PhiGlyph className="pt-phiIcon pt-phiIcon--amount" />
+          </div>
           <div className="pt-amountSub">
             {status === "READY" && "Set amount, then request payment."}
             {status === "WAITING" && "Customer scans to pay. Receipt settles this invoice."}
@@ -138,8 +141,8 @@ export function ChargeView(props: {
                   border: "1px solid rgba(255,255,255,0.12)",
                   background: "rgba(255,255,255,0.04)",
                   color: "rgba(242,255,252,0.92)",
-                  padding: "12px 12px",
-                  fontSize: 14,
+                  padding: "8px 10px",
+                  fontSize: 10,
                   outline: "none",
                 }}
               />
@@ -150,7 +153,11 @@ export function ChargeView(props: {
 
           <div className="pt-actions">
             <button className="pt-btn primary" type="button" onClick={buildInvoice} disabled={status !== "READY" && status !== "SETTLED"}>
-              {status === "READY" ? "Request Φ" : "New Charge"}
+              {status === "READY" ? (
+                <>
+                  Request <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                </>
+              ) : "New Charge"}
             </button>
 
             <button className="pt-btn" type="button" onClick={() => setScanOpen(true)} disabled={status === "READY"}>

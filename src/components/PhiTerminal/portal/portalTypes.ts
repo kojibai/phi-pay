@@ -13,6 +13,7 @@ export type PhiPortalMetaV1 = Readonly<{
 
   merchantPhiKey: PhiKey;
   merchantLabel?: string;
+  kaiSignature?: string;
 
   status: PortalStatus;
 

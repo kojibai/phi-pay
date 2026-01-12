@@ -5,6 +5,7 @@ import { InboxView } from "./views/InboxView";
 import { HistoryView } from "./views/HistoryView";
 import { SettingsView } from "./views/SettingsView";
 import { Toast } from "./ui/Toast";
+import { PhiGlyph } from "./ui/PhiGlyph";
 import { useIngestFromURL } from "./hooks/useIngest";
 export { PortalView } from "./views/PortalView";
 
@@ -26,14 +27,21 @@ export function PhiTerminal(props: PhiTerminalProps) {
     return (
       <div className="pt-header">
         <div className="pt-brand">
-          <div className="pt-logo">Φ</div>
+          <div className="pt-logo">
+            <PhiGlyph className="pt-phiIcon pt-phiIcon--logo" />
+          </div>
           <div className="pt-brandText">
-            <div className="pt-title">Φ Terminal</div>
+            <div className="pt-title">
+              <PhiGlyph className="pt-phiIcon pt-phiIcon--title" /> Terminal
+            </div>
             <div className="pt-subtitle">{props.merchantLabel ?? "Merchant"}</div>
           </div>
         </div>
-        <div className="pt-merchantKey" title={props.merchantPhiKey}>
-          {props.merchantPhiKey.slice(0, 6)}…{props.merchantPhiKey.slice(-6)}
+        <div className="pt-headPills">
+          <div className="pt-pill pt-pill--glow" title={props.merchantPhiKey}>
+            <PhiGlyph className="pt-phiIcon pt-phiIcon--pill" /> Key{" "}
+            <span className="pt-pillMono">{props.merchantPhiKey.slice(0, 6)}…{props.merchantPhiKey.slice(-6)}</span>
+          </div>
         </div>
       </div>
     );

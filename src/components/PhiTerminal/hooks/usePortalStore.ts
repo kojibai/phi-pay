@@ -27,6 +27,7 @@ export function usePortalStore() {
       allowDirectReceives: session?.meta.allowDirectReceives ?? false,
       merchantPhiKey: session?.meta.merchantPhiKey ?? "",
       merchantLabel: session?.meta.merchantLabel ?? "",
+      kaiSignature: session?.meta.kaiSignature ?? "",
       portalId: session?.meta.portalId ?? "",
     };
   }, [session]);
