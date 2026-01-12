@@ -274,7 +274,10 @@ export function PortalView(props: {
     if (creatingInvoice) return;
     setCreatingInvoice(true);
     try {
-      const session = await PortalDB.getSession();
+      const openSession = store.session?.meta.status === "OPEN" ? store.session : null;
+      const storedSession = openSession ? null : await PortalDB.getSession();
+      const session = openSession ?? storedSession;
+
       if (!session) {
         setMsg("No active portal session.");
         return;
@@ -284,8 +287,9 @@ export function PortalView(props: {
         return;
       }
 
-      store.setSession(session);
-      await store.refresh();
+      if (store.session?.meta.status !== "OPEN") {
+        store.setSession(session);
+      }
 
       await clearActiveInvoice();
 
