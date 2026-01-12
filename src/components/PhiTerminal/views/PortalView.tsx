@@ -112,6 +112,13 @@ export function PortalView(props: {
     return "neutral";
   }, [status]);
 
+  const clearActiveInvoice = useCallback((note?: string) => {
+    setActiveInvoiceUrl(null);
+    setActiveInvoiceId(null);
+    setQrOpen(false);
+    if (note) setMsg(note);
+  }, []);
+
   const openPortal = useCallback(async () => {
     if (!store.session) return;
 
@@ -354,13 +361,6 @@ export function PortalView(props: {
     await PortalDB.putSession(next);
     await store.refresh();
   }, [store]);
-
-  const clearActiveInvoice = useCallback((note?: string) => {
-    setActiveInvoiceUrl(null);
-    setActiveInvoiceId(null);
-    setQrOpen(false);
-    if (note) setMsg(note);
-  }, []);
 
   const handleToggleUnit = useCallback((next: UnitMode) => {
     if (next === primaryUnit) return;
