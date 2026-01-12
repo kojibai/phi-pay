@@ -151,6 +151,7 @@ export function PortalView(props: {
       }),
     });
 
+    store.setSession(next);
     await PortalDB.putSession(next);
     await store.refresh();
     setMsg("Portal OPEN.");
@@ -269,17 +270,25 @@ export function PortalView(props: {
   }, [ingestInvoice, ingestSettlement]);
 
   const createSessionInvoice = useCallback(async () => {
-    if (!store.session) return;
-    if (store.session.meta.status !== "OPEN") {
+    const session = store.session ?? await PortalDB.getSession();
+    if (!session) {
+      setMsg("No active portal session.");
+      return;
+    }
+    if (session.meta.status !== "OPEN") {
       setMsg("Open the portal first.");
       return;
+    }
+
+    if (!store.session) {
+      store.setSession(session);
     }
 
     await clearActiveInvoice();
 
     const inv = await createInvoice({
-      merchantPhiKey: store.session.meta.merchantPhiKey,
-      merchantLabel: store.session.meta.merchantLabel,
+      merchantPhiKey: session.meta.merchantPhiKey,
+      merchantLabel: session.meta.merchantLabel,
       amountPhi,
       memo: memo.trim() || undefined,
       createdPulse: 0,
@@ -294,7 +303,7 @@ export function PortalView(props: {
     setActiveInvoiceUrl(url);
     setQrOpen(true);
     setMsg("Invoice created.");
-  }, [amountPhi, clearActiveInvoice, memo, store.session]);
+  }, [amountPhi, clearActiveInvoice, memo, store]);
 
   const closePortal = useCallback(async () => {
     if (!store.session) return;
