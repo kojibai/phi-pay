@@ -35,13 +35,32 @@ function extractLabelFromUnknown(u: unknown): string | null {
 function tryParseSvgMetadata(svgText: string): unknown | null {
   try {
     const doc = new DOMParser().parseFromString(svgText, "image/svg+xml");
-    const meta = doc.querySelector("metadata");
-    const txt = meta?.textContent?.trim();
-    if (!txt) return null;
-    return safeParseJson(txt);
+    const svg = doc.querySelector("svg");
+    const attrPhiKey =
+      svg?.getAttribute("data-phi-key") ??
+      svg?.getAttribute("data-merchant-phi-key") ??
+      svg?.getAttribute("data-user-phi-key") ??
+      svg?.getAttribute("data-phiKey");
+    if (attrPhiKey && attrPhiKey.length > 10) {
+      return { phiKey: attrPhiKey };
+    }
+
+    const metas = Array.from(doc.querySelectorAll("metadata"));
+    for (const meta of metas) {
+      const raw = meta.textContent?.trim();
+      if (!raw) continue;
+      const cdataMatch = raw.match(/^<!\[CDATA\[(.*)\]\]>$/s);
+      const txt = cdataMatch ? cdataMatch[1].trim() : raw;
+      const parsed = safeParseJson(txt);
+      if (parsed && extractPhiKeyFromUnknown(parsed)) {
+        return parsed;
+      }
+    }
   } catch {
     return null;
   }
+
+  return null;
 }
 
 export async function createArmedPortalSessionFromGlyph(file: File): Promise<{
