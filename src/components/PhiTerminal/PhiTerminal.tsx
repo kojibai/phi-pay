@@ -44,7 +44,7 @@ export function PhiTerminal(props: PhiTerminalProps) {
       {header}
 
       <div className="pt-body">
-        {tab === "charge" && <ChargeView merchantPhiKey={props.merchantPhiKey} merchantLabel={props.merchantLabel} defaultAmountPhi={props.defaultAmountPhi ?? "144"} />}
+        {tab === "charge" && <ChargeView merchantPhiKey={props.merchantPhiKey} merchantLabel={props.merchantLabel} defaultAmountPhi={props.defaultAmountPhi ?? "0"} />}
         {tab === "inbox" && <InboxView />}
         {tab === "history" && <HistoryView />}
         {tab === "settings" && <SettingsView />}

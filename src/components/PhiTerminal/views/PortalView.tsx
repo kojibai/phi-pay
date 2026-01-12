@@ -51,8 +51,8 @@ export function PortalView(props: {
   const [msg, setMsg] = useState<string | null>(null);
 
   const [primaryUnit, setPrimaryUnit] = useState<UnitMode>("phi");
-  const [amountInput, setAmountInput] = useState("144");
-  const [amountMicroPhi, setAmountMicroPhi] = useState(() => microPhiFromPhiInput("144").toString());
+  const [amountInput, setAmountInput] = useState("0");
+  const [amountMicroPhi, setAmountMicroPhi] = useState(() => microPhiFromPhiInput("0").toString());
   const [memo, setMemo] = useState("");
 
   const [activeInvoiceUrl, setActiveInvoiceUrl] = useState<string | null>(null);
