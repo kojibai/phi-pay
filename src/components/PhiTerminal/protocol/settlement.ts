@@ -16,15 +16,15 @@ export async function createSettlement(input: {
     v: "PHI-SETTLEMENT-1" as const,
     canon: "JCS" as const,
     hashAlg: "sha256" as const,
-    receivedPulse: input.receivedPulse,
     invoiceId: input.invoice.invoiceId,
     nonce: input.invoice.nonce,
     fromPhiKey: input.fromPhiKey,
     toPhiKey: input.toPhiKey,
     amount: { phi: input.amountPhi },
-    memo: input.memo,
-    proof: input.proof,
-    txRef: input.txRef,
+    ...(input.receivedPulse != null ? { receivedPulse: input.receivedPulse } : {}),
+    ...(input.memo != null ? { memo: input.memo } : {}),
+    ...(input.proof !== undefined ? { proof: input.proof } : {}),
+    ...(input.txRef != null ? { txRef: input.txRef } : {}),
   };
 
   const canon = jcsCanonicalize(core);

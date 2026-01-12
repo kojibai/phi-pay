@@ -16,11 +16,11 @@ export async function createInvoice(input: {
     canon: "JCS" as const,
     hashAlg: "sha256" as const,
     createdPulse: input.createdPulse,
-    expiresPulse: input.expiresPulse,
     merchantPhiKey: input.merchantPhiKey,
-    merchantLabel: input.merchantLabel,
     amount: { phi: input.amountPhi },
-    memo: input.memo,
+    ...(input.expiresPulse != null ? { expiresPulse: input.expiresPulse } : {}),
+    ...(input.merchantLabel != null ? { merchantLabel: input.merchantLabel } : {}),
+    ...(input.memo != null ? { memo: input.memo } : {}),
     nonce: randomNonce(16),
   };
 
