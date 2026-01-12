@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as QRCode from "qrcode";
 
 export function InvoiceQR(props: {
@@ -6,29 +6,30 @@ export function InvoiceQR(props: {
   size?: number;      // px
   label?: string;
 }) {
-  const size = props.size ?? 280;
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const size = props.size ?? 220;
   const [err, setErr] = useState<string | null>(null);
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setErr(null);
+    setDataUrl(null);
 
     (async () => {
       try {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        canvas.width = size;
-        canvas.height = size;
-
-        await QRCode.toCanvas(canvas, props.value, {
+        const url = await QRCode.toDataURL(props.value, {
           margin: 1,
-          errorCorrectionLevel: "M",
+          errorCorrectionLevel: "H",
           width: size,
+          color: {
+            dark: "#000000",
+            light: "#FFFFFF",
+          },
         });
-
         if (cancelled) return;
+        setDataUrl(url);
       } catch (e) {
+        if (cancelled) return;
         setErr((e as Error)?.message ?? "QR render failed");
       }
     })();
@@ -45,18 +46,19 @@ export function InvoiceQR(props: {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+    <div className="pt-qr">
       {props.label ? <div className="pt-muted">{props.label}</div> : null}
-      <canvas
-        ref={canvasRef}
-        style={{
-          width: size,
-          height: size,
-          borderRadius: 14,
-          border: "1px solid rgba(255,255,255,0.12)",
-          background: "rgba(255,255,255,0.92)",
-        }}
-      />
+      {dataUrl ? (
+        <img
+          src={dataUrl}
+          width={size}
+          height={size}
+          alt={props.label ?? "Invoice QR"}
+          className="pt-qrImage"
+        />
+      ) : (
+        <div className="pt-qrPlaceholder">Generating…</div>
+      )}
     </div>
   );
 }

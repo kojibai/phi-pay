@@ -1,24 +1,20 @@
 import React from "react";
+import {
+  normalizePhiInput,
+  normalizeUsdInput,
+  type UnitMode,
+} from "../pricing/amountModel";
 
-function clampPhiString(s: string): string {
-  // Keep only digits + single dot, limit to 6 decimals, remove leading zeros safely.
-  const raw = s.replace(/[^\d.]/g, "");
-  const parts = raw.split(".");
-  const a = parts[0] ?? "";
-  const b = parts[1] ?? "";
-  const int = a.replace(/^0+(?=\d)/, "");
-  const dec = b.slice(0, 6);
-  return parts.length > 1 ? `${int || "0"}.${dec}` : (int || "0");
-}
-
-function addDigit(current: string, d: string): string {
+function addDigit(current: string, d: string, mode: UnitMode): string {
   if (!/^\d$/.test(d)) return current;
-  return clampPhiString(current === "0" ? d : current + d);
+  const next = current === "0" ? d : current + d;
+  return mode === "usd" ? normalizeUsdInput(next) : normalizePhiInput(next);
 }
 
-function addDot(current: string): string {
+function addDot(current: string, mode: UnitMode): string {
   if (current.includes(".")) return current;
-  return current + ".";
+  const next = current + ".";
+  return mode === "usd" ? normalizeUsdInput(next) : normalizePhiInput(next);
 }
 
 function backspace(current: string): string {
@@ -27,93 +23,70 @@ function backspace(current: string): string {
   return next === "" || next === "-" ? "0" : next;
 }
 
-function normalize(current: string): string {
-  return clampPhiString(current);
+function normalize(current: string, mode: UnitMode): string {
+  return mode === "usd" ? normalizeUsdInput(current) : normalizePhiInput(current);
 }
 
 export function AmountPad(props: {
-  valuePhi: string;
-  onChange: (nextPhi: string) => void;
+  value: string;
+  mode: UnitMode;
+  onChange: (nextValue: string) => void;
   quick?: string[];
 }) {
-  const quick = props.quick ?? ["9", "18", "36", "72", "144", "288"];
-
-  const btn: React.CSSProperties = {
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(255,255,255,0.05)",
-    color: "rgba(242,255,252,0.92)",
-    padding: "14px 0",
-    fontWeight: 900,
-    fontSize: 18,
-  };
-
-  const grid: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: 10,
-    marginTop: 12,
-  };
-
-  const quickRow: React.CSSProperties = {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-    marginTop: 10,
-  };
-
-  const quickBtn: React.CSSProperties = {
-    borderRadius: 999,
-    border: "1px solid rgba(55,255,228,0.22)",
-    background: "rgba(55,255,228,0.07)",
-    color: "rgba(55,255,228,0.95)",
-    padding: "8px 12px",
-    fontWeight: 900,
-    fontSize: 12,
-    letterSpacing: "0.04em",
-    textTransform: "uppercase",
-  };
+  const quick = props.quick ?? (props.mode === "usd" ? ["5", "10", "25", "50", "100"] : ["9", "18", "36", "72", "144"]);
 
   return (
-    <div>
-      <div style={quickRow}>
+    <div className="pt-pad">
+      <div className="pt-padQuick">
         {quick.map((q) => (
           <button
             key={q}
             type="button"
-            style={quickBtn}
-            onClick={() => props.onChange(normalize(q))}
+            className="pt-padQuickBtn"
+            onClick={() => props.onChange(normalize(q, props.mode))}
           >
-            {q} Φ
+            {props.mode === "usd" ? `$${q}` : `${q} Φ`}
           </button>
         ))}
         <button
           type="button"
-          style={{
-            ...quickBtn,
-            borderColor: "rgba(255,255,255,0.10)",
-            background: "rgba(255,255,255,0.04)",
-            color: "rgba(242,255,252,0.78)",
-          }}
+          className="pt-padQuickBtn pt-padQuickClear"
           onClick={() => props.onChange("0")}
         >
           Clear
         </button>
       </div>
 
-      <div style={grid}>
+      <div className="pt-padGrid">
         {["1","2","3","4","5","6","7","8","9"].map((d) => (
-          <button key={d} type="button" style={btn} onClick={() => props.onChange(addDigit(props.valuePhi, d))}>
+          <button
+            key={d}
+            type="button"
+            className="pt-padBtn"
+            onClick={() => props.onChange(addDigit(props.value, d, props.mode))}
+          >
             {d}
           </button>
         ))}
-        <button type="button" style={btn} onClick={() => props.onChange(addDot(props.valuePhi))}>
+        <button
+          type="button"
+          className="pt-padBtn"
+          onClick={() => props.onChange(addDot(props.value, props.mode))}
+        >
           .
         </button>
-        <button type="button" style={btn} onClick={() => props.onChange(addDigit(props.valuePhi, "0"))}>
+        <button
+          type="button"
+          className="pt-padBtn"
+          onClick={() => props.onChange(addDigit(props.value, "0", props.mode))}
+        >
           0
         </button>
-        <button type="button" style={btn} onClick={() => props.onChange(backspace(props.valuePhi))}>
+        <button
+          type="button"
+          className="pt-padBtn"
+          onClick={() => props.onChange(backspace(props.value))}
+        >
           ⌫
         </button>
       </div>
