@@ -122,6 +122,14 @@ export function PortalView(props: {
     if (note) setMsg(note);
   }, [activeInvoiceId]);
 
+  React.useEffect(() => {
+    if (!store.session || store.session.meta.status !== "OPEN") {
+      setActiveInvoiceUrl(null);
+      setActiveInvoiceId(null);
+      setQrOpen(false);
+    }
+  }, [store.session]);
+
   const openPortal = useCallback(async () => {
     if (!store.session) return;
 
@@ -267,9 +275,7 @@ export function PortalView(props: {
       return;
     }
 
-    if (activeInvoiceId) {
-      await PortalDB.setInvoiceStatus(activeInvoiceId, "CANCELED");
-    }
+    await clearActiveInvoice();
 
     const inv = await createInvoice({
       merchantPhiKey: store.session.meta.merchantPhiKey,
@@ -288,7 +294,7 @@ export function PortalView(props: {
     setActiveInvoiceUrl(url);
     setQrOpen(true);
     setMsg("Invoice created.");
-  }, [activeInvoiceId, amountPhi, memo, store.session]);
+  }, [amountPhi, clearActiveInvoice, memo, store.session]);
 
   const closePortal = useCallback(async () => {
     if (!store.session) return;
