@@ -1,5 +1,26 @@
 /* Φ Terminal — familiar, Square-clean, but Atlantean-glass */
 
+html,
+body,
+#root {
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
 .pt-shell{
   --bg0: rgba(10, 18, 22, 1);
   --bg1: rgba(6, 12, 15, 1);
@@ -305,4 +326,370 @@
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+
+/* Portal kiosk layout */
+.pt-portal{
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  padding-left: calc(12px + env(safe-area-inset-left));
+  padding-right: calc(12px + env(safe-area-inset-right));
+}
+
+.pt-portalEmpty{
+  align-items: center;
+  justify-content: center;
+}
+
+.pt-portalEmptyInner{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.pt-portalHeader{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pt-merchantBlock{
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pt-merchantLabel{
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.pt-merchantKey{
+  font-size: 12px;
+  color: var(--inkDim);
+}
+
+.pt-merchantMeta{
+  font-size: 12px;
+  color: var(--inkFaint);
+}
+
+.pt-headerActions{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pt-iconBtn{
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,0.04);
+  color: var(--inkDim);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pt-btnCompact{
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.pt-portalMain{
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 860px){
+  .pt-portalMain{
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+
+.pt-portalLeft,
+.pt-portalRight{
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pt-portalLocked{
+  align-items: center;
+  justify-content: center;
+}
+
+.pt-amountCard .pt-cardInner{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pt-amountPrimary{
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.pt-amountSecondary{
+  font-size: 14px;
+  color: var(--inkDim);
+}
+
+.pt-unitToggle{
+  display: inline-flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.pt-unitBtn{
+  border: none;
+  background: transparent;
+  color: var(--inkDim);
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.pt-unitBtn.active{
+  background: rgba(55,255,228,0.16);
+  color: var(--ink);
+}
+
+.pt-unitBtn:disabled{
+  opacity: 0.4;
+}
+
+.pt-rateLine{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--inkFaint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pt-rateStatus{
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  font-size: 10px;
+  color: var(--inkDim);
+}
+
+.pt-rateStatus.live{
+  color: var(--aqua);
+  border-color: rgba(55,255,228,0.3);
+}
+
+.pt-rateStatus.cached{
+  color: var(--gold);
+  border-color: rgba(255,231,160,0.3);
+}
+
+.pt-rateStatus.unavailable{
+  color: var(--inkFaint);
+}
+
+.pt-input{
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: var(--ink);
+  padding: 8px 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+.pt-pad{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pt-padQuick{
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pt-padQuickBtn{
+  border-radius: 999px;
+  border: 1px solid rgba(55,255,228,0.22);
+  background: rgba(55,255,228,0.08);
+  color: rgba(55,255,228,0.95);
+  padding: 6px 10px;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pt-padQuickClear{
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: var(--inkDim);
+}
+
+.pt-padGrid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.pt-padBtn{
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: var(--ink);
+  padding: 12px 0;
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.pt-actionRow{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pt-qrPanel{
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.pt-qr{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pt-qrImage{
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  width: min(220px, 70vw);
+  height: auto;
+}
+
+.pt-qrPlaceholder{
+  font-size: 12px;
+  color: var(--inkFaint);
+  padding: 16px 0;
+}
+
+.pt-recent{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pt-recentRow{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pt-receiptChip{
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,0.04);
+  padding: 8px 10px;
+  min-width: 110px;
+}
+
+.pt-receiptAmount{
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.pt-receiptMeta{
+  font-size: 11px;
+  color: var(--inkDim);
+}
+
+.pt-statusMessage{
+  font-size: 12px;
+  color: var(--inkDim);
+}
+
+.pt-modalOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 8, 0.74);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 20;
+}
+
+.pt-modal{
+  width: 100%;
+  max-width: 420px;
+  background: rgba(10,18,22,0.98);
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pt-modalHeader{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pt-modalTitle{
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pt-detailGrid{
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 6px 10px;
+  font-size: 12px;
+}
+
+.pt-modalActions{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+@media (max-width: 480px){
+  .pt-amountPrimary{
+    font-size: 36px;
+  }
+  .pt-padBtn{
+    padding: 10px 0;
+  }
 }

@@ -14,6 +14,15 @@ import { appendSettlementToSession } from "../portal/portalAppend";
 import { closePortalSession } from "../portal/portalClose";
 import { buildPortalSettlementSvg, patchAnchorSvgWithPortalMeta } from "../portal/portalExport";
 import { usePortalStore } from "../hooks/usePortalStore";
+import { usePhiUsd } from "../pricing/usePhiUsd";
+import {
+  formatUsdFromMicroPhi,
+  microPhiFromPhiInput,
+  microPhiFromUsdCents,
+  phiInputFromMicroPhi,
+  usdCentsFromUsdInput,
+  type UnitMode,
+} from "../pricing/amountModel";
 
 function downloadText(filename: string, text: string, mime: string) {
   const blob = new Blob([text], { type: mime });
@@ -25,16 +34,25 @@ function downloadText(filename: string, text: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
+function shortKey(key: string) {
+  if (!key) return "";
+  return `${key.slice(0, 6)}…${key.slice(-4)}`;
+}
+
 export function PortalView(props: {
   // Optional hook to your real presence verifier (FaceID / passkey)
   onVerifyOwnerPresence?: (purpose: "OPEN" | "CLOSE") => Promise<{ ok: boolean; proof?: unknown }>;
 }) {
   const store = usePortalStore();
+  const rate = usePhiUsd();
 
   const [scanOpen, setScanOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const [amountPhi, setAmountPhi] = useState("144");
+  const [primaryUnit, setPrimaryUnit] = useState<UnitMode>("phi");
+  const [amountInput, setAmountInput] = useState("144");
+  const [amountMicroPhi, setAmountMicroPhi] = useState(() => microPhiFromPhiInput("144").toString());
   const [memo, setMemo] = useState("");
 
   const [activeInvoiceUrl, setActiveInvoiceUrl] = useState<string | null>(null);
@@ -43,22 +61,43 @@ export function PortalView(props: {
   const anchorTextRef = useRef<string | null>(null);
 
   const status = store.session?.meta.status ?? "LOCKED";
+  const rateAvailable = Boolean(rate.usdPerPhi && rate.phiPerUsd);
+  const microPhi = useMemo(() => BigInt(amountMicroPhi || "0"), [amountMicroPhi]);
 
-  // Local broadcast ingest (optional, but great for multi-tab / companion-wallet flows)
+  const amountPhi = useMemo(() => phiInputFromMicroPhi(microPhi), [microPhi]);
+  const amountUsd = useMemo(() => formatUsdFromMicroPhi(microPhi, rate.usdPerPhi), [microPhi, rate.usdPerPhi]);
+
+  const primaryDisplay = primaryUnit === "phi"
+    ? `${amountPhi} Φ`
+    : amountUsd
+      ? `$${amountUsd}`
+      : "—";
+
+  const secondaryDisplay = primaryUnit === "phi"
+    ? amountUsd ? `$${amountUsd}` : "—"
+    : `${amountPhi} Φ`;
+
+  const applyAmountInput = useCallback((nextValue: string, unit = primaryUnit) => {
+    setAmountInput(nextValue);
+    if (unit === "phi") {
+      const micro = microPhiFromPhiInput(nextValue);
+      setAmountMicroPhi(micro.toString());
+      return;
+    }
+    const cents = usdCentsFromUsdInput(nextValue);
+    const micro = microPhiFromUsdCents(cents, rate.usdPerPhi);
+    if (micro != null) {
+      setAmountMicroPhi(micro.toString());
+    }
+  }, [primaryUnit, rate.usdPerPhi]);
+
   React.useEffect(() => {
-    const off = listenLocalChannel(async (p) => {
-      // Only ingest if portal open
-      if (!store.session) return;
-      if ((p as any)?.v === "PHI-SETTLEMENT-1") {
-        await ingestSettlement(p as PhiSettlementV1);
-      }
-      if ((p as any)?.v === "PHI-INVOICE-1") {
-        await ingestInvoice(p as PhiInvoiceV1);
-      }
-    });
-    return () => off();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [store.session]);
+    if (primaryUnit !== "usd") return;
+    if (!rate.usdPerPhi) return;
+    const cents = usdCentsFromUsdInput(amountInput);
+    const micro = microPhiFromUsdCents(cents, rate.usdPerPhi);
+    if (micro != null) setAmountMicroPhi(micro.toString());
+  }, [amountInput, primaryUnit, rate.usdPerPhi]);
 
   const tone = useMemo(() => {
     if (status === "OPEN") return "ok";
@@ -90,16 +129,20 @@ export function PortalView(props: {
 
     await PortalDB.putSession(next);
     await store.refresh();
-    setMsg("✅ Portal OPEN.");
+    setMsg("Portal OPEN.");
   }, [props.onVerifyOwnerPresence, store]);
 
   const armFromGlyph = useCallback(async (file: File) => {
-    const { session, anchorText } = await createArmedPortalSessionFromGlyph(file);
-    anchorTextRef.current = anchorText;
-    await PortalDB.clearAll();
-    await PortalDB.putSession(session);
-    await store.refresh();
-    setMsg("Merchant glyph loaded. Ready to open.");
+    try {
+      const { session, anchorText } = await createArmedPortalSessionFromGlyph(file);
+      anchorTextRef.current = anchorText;
+      await PortalDB.clearAll();
+      await PortalDB.putSession(session);
+      await store.refresh();
+      setMsg("Merchant glyph loaded. Ready to open.");
+    } catch (err) {
+      setMsg((err as Error)?.message ?? "Failed to load merchant glyph.");
+    }
   }, [store]);
 
   const ingestInvoice = useCallback(async (invoice: PhiInvoiceV1) => {
@@ -147,6 +190,22 @@ export function PortalView(props: {
     setMsg(res.note);
     await store.refresh();
   }, [store]);
+
+  // Local broadcast ingest (optional, but great for multi-tab / companion-wallet flows)
+  React.useEffect(() => {
+    const off = listenLocalChannel(async (p) => {
+      // Only ingest if portal open
+      if (!store.session) return;
+      if ((p as any)?.v === "PHI-SETTLEMENT-1") {
+        await ingestSettlement(p as PhiSettlementV1);
+      }
+      if ((p as any)?.v === "PHI-INVOICE-1") {
+        await ingestInvoice(p as PhiInvoiceV1);
+      }
+    });
+    return () => off();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.session, ingestSettlement, ingestInvoice]);
 
   const ingestTextOrUrl = useCallback(async (text: string) => {
     const payload = await decodePayloadFromText(text);
@@ -250,7 +309,7 @@ export function PortalView(props: {
     setActiveInvoiceUrl(null);
     setActiveInvoiceId(null);
 
-    setMsg("✅ Portal CLOSED and Settlement Glyph minted.");
+    setMsg("Portal CLOSED and Settlement Glyph minted.");
   }, [props.onVerifyOwnerPresence, store]);
 
   const downloadPatchedMerchantGlyph = useCallback(async () => {
@@ -287,201 +346,252 @@ export function PortalView(props: {
     await store.refresh();
   }, [store]);
 
+  const handleToggleUnit = useCallback((next: UnitMode) => {
+    if (next === primaryUnit) return;
+    if (next === "usd" && !rateAvailable) return;
+    setPrimaryUnit(next);
+    const nextValue = next === "phi"
+      ? phiInputFromMicroPhi(microPhi)
+      : formatUsdFromMicroPhi(microPhi, rate.usdPerPhi) ?? amountInput;
+    setAmountInput(nextValue);
+  }, [amountInput, microPhi, primaryUnit, rate.usdPerPhi, rateAvailable]);
+
+  const quickKeys = primaryUnit === "usd" ? ["5", "10", "25", "50", "100"] : ["9", "18", "36", "72", "144"];
+
   if (!store.session) {
     return (
-      <div className="pt-card pt-scroll">
-        <div className="pt-cardInner">
-          <div className="pt-h1">Portal</div>
-          <div className="pt-muted" style={{ marginTop: 6 }}>
-            Drop your Merchant Glyph to arm a register session. This portal stays open until the owner closes it.
+      <div className="pt-portal pt-portalEmpty">
+        <div className="pt-card">
+          <div className="pt-cardInner pt-portalEmptyInner">
+            <div className="pt-h1">Portal Register</div>
+            <div className="pt-muted">Upload merchant glyph to arm a register.</div>
+            <label className="pt-btn primary" style={{ cursor: "pointer" }}>
+              Upload Merchant Glyph
+              <input
+                type="file"
+                accept=".svg,.json,application/json,image/svg+xml"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (f) void armFromGlyph(f);
+                  e.currentTarget.value = "";
+                }}
+              />
+            </label>
+            {msg ? <div className="pt-muted">{msg}</div> : null}
           </div>
-
-          <div className="pt-divider" />
-
-          <label className="pt-btn primary" style={{ cursor: "pointer" }}>
-            Upload Merchant Glyph
-            <input
-              type="file"
-              accept=".svg,.json,application/json,image/svg+xml"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                if (f) void armFromGlyph(f);
-                e.currentTarget.value = "";
-              }}
-            />
-          </label>
-
-          {msg ? <div className="pt-muted" style={{ marginTop: 10 }}>{msg}</div> : null}
         </div>
       </div>
     );
   }
 
+  const recentReceipts = store.receipts.slice(0, 3);
+
   return (
-    <div className="pt-split">
-      <div className="pt-card pt-scroll">
-        <div className="pt-cardInner">
-          <div className="pt-row">
-            <div>
-              <div className="pt-h1">Portal Register</div>
-              <div className="pt-muted" style={{ marginTop: 6 }}>
-                Upload → Open → Receive → Close → Mint one Settlement Glyph file.
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <Pill tone={tone as any} text={status} />
-              {status === "OPEN" ? (
-                <button className="pt-btn bad" type="button" onClick={() => void closePortal()}>
-                  Close Register
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="pt-divider" />
-
-          <div className="pt-kv">
-            <div className="pt-k">Merchant</div>
-            <div className="pt-v">{store.stats.merchantLabel || "Merchant"} • {store.stats.merchantPhiKey.slice(0, 10)}…</div>
-
-            <div className="pt-k">Receives</div>
-            <div className="pt-v">{store.stats.receiveCount}</div>
-
-            <div className="pt-k">Total</div>
-            <div className="pt-v">{store.stats.totalPhi} Φ</div>
-
-            <div className="pt-k">Root</div>
-            <div className="pt-v">{store.stats.rollingRoot.slice(0, 20)}…</div>
-          </div>
-
-          <div className="pt-divider" />
-
-          {status === "ARMED" ? (
-            <div className="pt-actions">
-              <button className="pt-btn ok" type="button" onClick={() => void openPortal()}>
-                Verify & Open Register
-              </button>
-              <button className="pt-btn" type="button" onClick={() => void PortalDB.clearAll().then(store.refresh)}>
-                Reset
-              </button>
-            </div>
-          ) : null}
-
+    <div className="pt-portal">
+      <header className="pt-portalHeader">
+        <div className="pt-merchantBlock">
+          <div className="pt-merchantLabel">{store.stats.merchantLabel || "Merchant"}</div>
+          <div className="pt-merchantKey">{shortKey(store.stats.merchantPhiKey)}</div>
+          <div className="pt-merchantMeta">{store.stats.receiveCount} receives • {store.stats.totalPhi} Φ</div>
+        </div>
+        <div className="pt-headerActions">
+          <Pill tone={tone as any} text={status} />
           {status === "OPEN" ? (
-            <>
-              <div className="pt-h1" style={{ marginTop: 4 }}>Charge (Invoice)</div>
-              <div className="pt-amount">{amountPhi} Φ</div>
+            <button className="pt-btn bad pt-btnCompact" type="button" onClick={() => void closePortal()}>
+              Close
+            </button>
+          ) : null}
+          {status === "ARMED" ? (
+            <button className="pt-btn ok pt-btnCompact" type="button" onClick={() => void openPortal()}>
+              Open
+            </button>
+          ) : null}
+          {status === "CLOSED" ? (
+            <label className="pt-btn pt-btnCompact" style={{ cursor: "pointer" }}>
+              New
+              <input
+                type="file"
+                accept=".svg,.json,application/json,image/svg+xml"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (f) void armFromGlyph(f);
+                  e.currentTarget.value = "";
+                }}
+              />
+            </label>
+          ) : null}
+          <button className="pt-iconBtn" type="button" onClick={() => setDetailsOpen(true)} aria-label="Details">
+            ⓘ
+          </button>
+        </div>
+      </header>
 
-              <div className="pt-row" style={{ marginTop: 10 }}>
+      {status === "OPEN" ? (
+        <div className="pt-portalMain">
+          <section className="pt-portalLeft">
+            <div className="pt-card pt-amountCard">
+              <div className="pt-cardInner">
+                <div className="pt-row">
+                  <div className="pt-h1">Charge</div>
+                  <div className="pt-unitToggle">
+                    <button
+                      type="button"
+                      className={primaryUnit === "phi" ? "pt-unitBtn active" : "pt-unitBtn"}
+                      onClick={() => handleToggleUnit("phi")}
+                    >
+                      Φ
+                    </button>
+                    <button
+                      type="button"
+                      className={primaryUnit === "usd" ? "pt-unitBtn active" : "pt-unitBtn"}
+                      onClick={() => handleToggleUnit("usd")}
+                      disabled={!rateAvailable}
+                    >
+                      $
+                    </button>
+                  </div>
+                </div>
+                <div className="pt-amountPrimary">{primaryDisplay}</div>
+                <div className="pt-amountSecondary">{secondaryDisplay}</div>
+                <div className="pt-rateLine">
+                  Rate: {rateAvailable ? `$${(rate.usdPerPhi ?? 0).toFixed(4)} / Φ` : "—"}
+                  <span className={`pt-rateStatus ${rate.status}`}>{rate.status}</span>
+                </div>
                 <input
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
-                  placeholder="Memo (optional)"
-                  style={{
-                    flex: 1,
-                    borderRadius: 14,
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    background: "rgba(255,255,255,0.04)",
-                    color: "rgba(242,255,252,0.92)",
-                    padding: "12px 12px",
-                    fontSize: 14,
-                    outline: "none",
-                  }}
+                  placeholder="Memo"
+                  className="pt-input"
                 />
               </div>
+            </div>
 
-              <AmountPad valuePhi={amountPhi} onChange={setAmountPhi} />
+            <AmountPad
+              value={amountInput}
+              mode={primaryUnit}
+              onChange={applyAmountInput}
+              quick={quickKeys}
+            />
 
-              <div className="pt-actions">
-                <button className="pt-btn primary" type="button" onClick={() => void createSessionInvoice()}>
-                  Create Invoice QR
+            <div className="pt-actionRow">
+              <button className="pt-btn primary" type="button" onClick={() => void createSessionInvoice()}>
+                Create QR
+              </button>
+              <button className="pt-btn" type="button" onClick={() => setScanOpen(true)}>
+                Ingest
+              </button>
+            </div>
+          </section>
+
+          <section className="pt-portalRight">
+            <div className="pt-card pt-qrPanel">
+              <div className="pt-cardInner">
+                {activeInvoiceUrl ? (
+                  <InvoiceQR
+                    value={activeInvoiceUrl}
+                    size={220}
+                    label={activeInvoiceId ? `Invoice ${activeInvoiceId.slice(0, 6)}…` : "Invoice"}
+                  />
+                ) : (
+                  <div className="pt-qrPlaceholder">Create invoice to display QR</div>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-recent">
+              <div className="pt-h1">Recent</div>
+              <div className="pt-recentRow">
+                {recentReceipts.length === 0 ? (
+                  <div className="pt-muted">No receipts yet.</div>
+                ) : recentReceipts.map((r) => (
+                  <div className="pt-receiptChip" key={r.settlementId}>
+                    <div className="pt-receiptAmount">{r.amountPhi} Φ</div>
+                    <div className="pt-receiptMeta">{r.fromPhiKey.slice(0, 6)}…</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div className="pt-portalMain pt-portalLocked">
+          <div className="pt-card">
+            <div className="pt-cardInner pt-portalEmptyInner">
+              <div className="pt-h1">Portal Register</div>
+              <div className="pt-muted">Upload → Open → Receive → Close → Mint one settlement glyph.</div>
+              {status === "ARMED" ? (
+                <button className="pt-btn ok" type="button" onClick={() => void openPortal()}>
+                  Verify & Open
                 </button>
-
-                <button className="pt-btn" type="button" onClick={() => setScanOpen(true)}>
-                  Ingest Receipt
-                </button>
-
-                <label className="pt-btn" style={{ cursor: "pointer" }}>
-                  Import File
+              ) : null}
+              {status === "CLOSED" ? (
+                <label className="pt-btn primary" style={{ cursor: "pointer" }}>
+                  Upload Merchant Glyph
                   <input
                     type="file"
-                    accept=".json,.svg,application/json,image/svg+xml"
+                    accept=".svg,.json,application/json,image/svg+xml"
                     style={{ display: "none" }}
                     onChange={(e) => {
                       const f = e.target.files?.[0] ?? null;
-                      if (f) void ingestFile(f);
+                      if (f) void armFromGlyph(f);
                       e.currentTarget.value = "";
                     }}
                   />
                 </label>
-              </div>
-
-              <div className="pt-actions" style={{ marginTop: 6 }}>
-                <button className="pt-btn" type="button" onClick={() => void toggleDirect()}>
-                  Direct Receives: {store.stats.allowDirectReceives ? "ON" : "OFF"}
-                </button>
-                <button className="pt-btn" type="button" onClick={() => void downloadPatchedMerchantGlyph()}>
-                  Download Patched Merchant Glyph
-                </button>
-              </div>
-
-              {activeInvoiceUrl ? (
-                <div className="pt-qrBox" style={{ marginTop: 12 }}>
-                  <InvoiceQR value={activeInvoiceUrl} label={activeInvoiceId ? `Invoice • ${activeInvoiceId.slice(0, 10)}…` : "Invoice"} />
-                </div>
               ) : null}
-            </>
-          ) : null}
+            </div>
+          </div>
+        </div>
+      )}
 
-          {status === "CLOSED" ? (
-            <div className="pt-actions">
-              <label className="pt-btn primary" style={{ cursor: "pointer" }}>
-                Upload Merchant Glyph (New Session)
+      {msg ? <div className="pt-statusMessage">{msg}</div> : null}
+
+      {detailsOpen ? (
+        <div className="pt-modalOverlay" role="dialog" aria-modal="true">
+          <div className="pt-modal">
+            <div className="pt-modalHeader">
+              <div className="pt-modalTitle">Details</div>
+              <button className="pt-iconBtn" type="button" onClick={() => setDetailsOpen(false)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <div className="pt-detailGrid">
+              <div className="pt-k">Portal ID</div>
+              <div className="pt-v">{store.stats.portalId}</div>
+              <div className="pt-k">Root</div>
+              <div className="pt-v">{store.stats.rollingRoot.slice(0, 18)}…</div>
+              <div className="pt-k">Direct</div>
+              <div className="pt-v">{store.stats.allowDirectReceives ? "On" : "Off"}</div>
+            </div>
+            <div className="pt-modalActions">
+              <button className="pt-btn" type="button" onClick={() => void toggleDirect()}>
+                Direct Receives: {store.stats.allowDirectReceives ? "ON" : "OFF"}
+              </button>
+              <button className="pt-btn" type="button" onClick={() => void downloadPatchedMerchantGlyph()}>
+                Download Patched Glyph
+              </button>
+              <label className="pt-btn" style={{ cursor: "pointer" }}>
+                Import File
                 <input
                   type="file"
-                  accept=".svg,.json,application/json,image/svg+xml"
+                  accept=".json,.svg,application/json,image/svg+xml"
                   style={{ display: "none" }}
                   onChange={(e) => {
                     const f = e.target.files?.[0] ?? null;
-                    if (f) void armFromGlyph(f);
+                    if (f) void ingestFile(f);
                     e.currentTarget.value = "";
                   }}
                 />
               </label>
+              <button className="pt-btn" type="button" onClick={() => void PortalDB.clearAll().then(store.refresh)}>
+                Reset Session
+              </button>
             </div>
-          ) : null}
-
-          {msg ? <div className="pt-muted" style={{ marginTop: 10 }}>{msg}</div> : null}
-        </div>
-      </div>
-
-      <div className="pt-card pt-scroll">
-        <div className="pt-cardInner">
-          <div className="pt-h1">Session Receipts</div>
-          <div className="pt-muted" style={{ marginTop: 6 }}>
-            These are stored offline during the open portal, then sealed into one Settlement Glyph on close.
-          </div>
-
-          <div className="pt-divider" />
-
-          <div className="pt-list">
-            {store.receipts.slice(0, 40).map((r) => (
-              <div className="pt-item" key={r.settlementId}>
-                <div className="pt-itemTop">
-                  <div>
-                    <div className="pt-itemTitle">{r.amountPhi} Φ</div>
-                    <div className="pt-itemSub">
-                      From {r.fromPhiKey.slice(0, 10)}… • {r.settlementId.slice(0, 10)}…
-                    </div>
-                  </div>
-                  <Pill tone={r.matchedInvoice ? "ok" : "warn"} text={r.matchedInvoice ? "Matched" : "Direct"} />
-                </div>
-              </div>
-            ))}
           </div>
         </div>
-      </div>
+      ) : null}
 
       <ScanSheet
         open={scanOpen}

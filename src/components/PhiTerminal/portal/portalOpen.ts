@@ -47,6 +47,13 @@ function extractLabelFromUnknown(u: unknown): string | null {
   return typeof label === "string" ? label : null;
 }
 
+function extractPhiKeyFromSvgText(svgText: string): string | null {
+  const match = svgText.match(/data-phi-key=["']([^"']+)["']/i) ?? svgText.match(/phiKey=["']([^"']+)["']/i);
+  if (!match) return null;
+  const key = match[1]?.trim();
+  return key && key.length > 10 ? key : null;
+}
+
 function tryParseSvgMetadata(svgText: string): unknown | null {
   const embedded = extractEmbeddedMetaFromSvg(svgText);
   const auth = extractSigilAuthFromSvg(svgText);
@@ -57,9 +64,12 @@ function tryParseSvgMetadata(svgText: string): unknown | null {
     auth.userPhiKey ??
     extractPhiKeyFromUnknown(auth.meta ?? null);
 
-  if (phiKey) {
+  const svgPhiKey = extractPhiKeyFromSvgText(svgText);
+  const resolvedKey = phiKey ?? svgPhiKey;
+
+  if (resolvedKey) {
     return {
-      phiKey,
+      phiKey: resolvedKey,
       merchantLabel:
         extractLabelFromUnknown(embedded.raw ?? null) ??
         extractLabelFromUnknown(auth.meta ?? null),
