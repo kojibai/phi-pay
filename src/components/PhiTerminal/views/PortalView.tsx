@@ -60,6 +60,7 @@ export function PortalView(props: {
   const [amountMicroPhi, setAmountMicroPhi] = useState(() => microPhiFromPhiInput("0").toString());
   const [memo, setMemo] = useState("");
 
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
   const [activeInvoiceUrl, setActiveInvoiceUrl] = useState<string | null>(null);
   const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
@@ -122,6 +123,12 @@ export function PortalView(props: {
     if (note) setMsg(note);
   }, [activeInvoiceId]);
 
+  React.useEffect(() => {
+    if (!store.session || store.session.meta.status !== "OPEN") {
+      void clearActiveInvoice();
+    }
+  }, [clearActiveInvoice, store.session]);
+
   const openPortal = useCallback(async () => {
     if (!store.session) return;
 
@@ -143,6 +150,7 @@ export function PortalView(props: {
       }),
     });
 
+    store.setSession(next);
     await PortalDB.putSession(next);
     await store.refresh();
     setMsg("Portal OPEN.");
@@ -261,34 +269,51 @@ export function PortalView(props: {
   }, [ingestInvoice, ingestSettlement]);
 
   const createSessionInvoice = useCallback(async () => {
-    if (!store.session) return;
-    if (store.session.meta.status !== "OPEN") {
-      setMsg("Open the portal first.");
-      return;
+    if (creatingInvoice) return;
+    setCreatingInvoice(true);
+    try {
+      const openSession = store.session?.meta.status === "OPEN" ? store.session : null;
+      const storedSession = openSession ? null : await PortalDB.getSession();
+      const session = openSession ?? storedSession;
+
+      if (!session) {
+        setMsg("No active portal session.");
+        return;
+      }
+      if (session.meta.status !== "OPEN") {
+        setMsg("Open the portal first.");
+        return;
+      }
+
+      if (store.session?.meta.status !== "OPEN") {
+        store.setSession(session);
+      }
+
+      await clearActiveInvoice();
+
+      const inv = await createInvoice({
+        merchantPhiKey: session.meta.merchantPhiKey,
+        merchantLabel: session.meta.merchantLabel,
+        amountPhi,
+        memo: memo.trim() || undefined,
+        createdPulse: 0,
+      });
+
+      await PortalDB.putInvoice(inv, "OPEN");
+
+      const r = b64urlEncodeString(JSON.stringify(inv));
+      const url = `${window.location.origin}${window.location.pathname}?r=${r}`;
+
+      setActiveInvoiceId(inv.invoiceId);
+      setActiveInvoiceUrl(url);
+      setQrOpen(true);
+      setMsg("Invoice created.");
+    } catch (err) {
+      setMsg((err as Error)?.message ?? "Failed to create invoice.");
+    } finally {
+      setCreatingInvoice(false);
     }
-
-    if (activeInvoiceId) {
-      await PortalDB.setInvoiceStatus(activeInvoiceId, "CANCELED");
-    }
-
-    const inv = await createInvoice({
-      merchantPhiKey: store.session.meta.merchantPhiKey,
-      merchantLabel: store.session.meta.merchantLabel,
-      amountPhi,
-      memo: memo.trim() || undefined,
-      createdPulse: 0,
-    });
-
-    await PortalDB.putInvoice(inv, "OPEN");
-
-    const r = b64urlEncodeString(JSON.stringify(inv));
-    const url = `${window.location.origin}${window.location.pathname}?r=${r}`;
-
-    setActiveInvoiceId(inv.invoiceId);
-    setActiveInvoiceUrl(url);
-    setQrOpen(true);
-    setMsg("Invoice created.");
-  }, [activeInvoiceId, amountPhi, memo, store.session]);
+  }, [amountPhi, clearActiveInvoice, creatingInvoice, memo, store]);
 
   const closePortal = useCallback(async () => {
     if (!store.session) return;
@@ -499,7 +524,12 @@ export function PortalView(props: {
             />
 
             <div className="pt-actionRow">
-              <button className="pt-btn primary" type="button" onClick={() => void createSessionInvoice()}>
+              <button
+                className="pt-btn primary"
+                type="button"
+                onClick={() => void createSessionInvoice()}
+                disabled={creatingInvoice}
+              >
                 Create QR
               </button>
               <button className="pt-btn" type="button" onClick={() => setScanOpen(true)}>
