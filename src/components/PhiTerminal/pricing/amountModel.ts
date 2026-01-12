@@ -23,7 +23,7 @@ export function normalizeUsdInput(raw: string): string {
 
 export function microPhiFromPhiInput(raw: string): bigint {
   const s = normalizePhiInput(raw).trim();
-  if (!/^\d+(\.\d+)?$/.test(s)) return 0n;
+  if (!/^\d+(\.\d*)?$/.test(s)) return 0n;
   const [a, bRaw] = s.split(".");
   const b = (bRaw ?? "").slice(0, 6).padEnd(6, "0");
   return BigInt(a || "0") * MICRO_PHI_SCALE + BigInt(b || "0");
@@ -41,7 +41,7 @@ export function phiInputFromMicroPhi(microPhi: bigint): string {
 
 export function usdCentsFromUsdInput(raw: string): bigint {
   const s = normalizeUsdInput(raw).trim();
-  if (!/^\d+(\.\d+)?$/.test(s)) return 0n;
+  if (!/^\d+(\.\d*)?$/.test(s)) return 0n;
   const [a, bRaw] = s.split(".");
   const b = (bRaw ?? "").slice(0, 2).padEnd(2, "0");
   return BigInt(a || "0") * USD_CENTS_SCALE + BigInt(b || "0");
