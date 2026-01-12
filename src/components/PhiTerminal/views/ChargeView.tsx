@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AmountPad } from "../ui/AmountPad";
 import { createInvoice } from "../protocol/invoice";
 import { b64urlEncodeString } from "../protocol/encode";
@@ -7,6 +7,7 @@ import { InvoiceQR } from "../ui/InvoiceQR";
 import { ScanSheet } from "../ui/ScanSheet";
 import { decodePayloadFromText, decodePayloadFromFile, ingestPayload } from "../transport/ingestTransport";
 import { Pill } from "../ui/Pill";
+import { listenLocalChannel } from "../transport/broadcastChannelTransport";
 
 export function ChargeView(props: {
   merchantPhiKey: string;
@@ -77,6 +78,17 @@ export function ChargeView(props: {
     if (res.ok && res.kind === "settlement" && res.matchedInvoiceId && res.matchedInvoiceId === activeInvoiceId) {
       setStatus("SETTLED");
     }
+  }, [activeInvoiceId]);
+
+  useEffect(() => {
+    const off = listenLocalChannel(async (payload) => {
+      if (payload.v !== "PHI-SETTLEMENT-1") return;
+      const res = await ingestPayload(payload);
+      if (res.ok && res.kind === "settlement" && res.matchedInvoiceId && res.matchedInvoiceId === activeInvoiceId) {
+        setStatus("SETTLED");
+      }
+    });
+    return () => off();
   }, [activeInvoiceId]);
 
   return (
