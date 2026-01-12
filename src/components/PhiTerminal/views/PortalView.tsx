@@ -606,6 +606,12 @@ export function PortalView(props: {
   );
 }
 
-function safeJson(anchorText: string): unknown {
-  try { return JSON.parse(anchorText); } catch { return { raw: anchorText }; }
+function safeJson(anchorText: string): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(anchorText);
+    if (typeof parsed === "object" && parsed !== null) return parsed as Record<string, unknown>;
+    return { raw: parsed };
+  } catch {
+    return { raw: anchorText };
+  }
 }

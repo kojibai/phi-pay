@@ -121,7 +121,7 @@ export function ChargeView(props: {
             </div>
           </div>
 
-          <AmountPad valuePhi={amountPhi} onChange={setAmountPhi} />
+          <AmountPad value={amountPhi} mode="phi" onChange={setAmountPhi} />
 
           <div className="pt-actions">
             <button className="pt-btn primary" type="button" onClick={buildInvoice} disabled={status !== "READY" && status !== "SETTLED"}>
