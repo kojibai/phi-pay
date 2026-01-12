@@ -99,7 +99,7 @@ export default defineConfig(({ mode }) => ({
         cleanupOutdatedCaches: true
       },
       devOptions: {
-        enabled: mode === "development"
+        enabled: false
       }
     })
   ]

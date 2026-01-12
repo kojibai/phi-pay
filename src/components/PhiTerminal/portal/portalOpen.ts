@@ -60,6 +60,19 @@ function tryParseSvgMetadata(svgText: string): unknown | null {
     return null;
   }
 
+  const attrMatch = svgText.match(/data-phi-key=["']([^"']+)["']/i);
+  if (attrMatch && attrMatch[1]?.length > 10) {
+    return { phiKey: attrMatch[1] };
+  }
+
+  const jsonMatches = svgText.matchAll(/<!\[CDATA\[(\{[\s\S]*?\})\]\]>/g);
+  for (const match of jsonMatches) {
+    const parsed = safeParseJson(match[1]);
+    if (parsed && extractPhiKeyFromUnknown(parsed)) {
+      return parsed;
+    }
+  }
+
   return null;
 }
 
