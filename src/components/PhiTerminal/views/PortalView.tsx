@@ -39,6 +39,11 @@ function shortKey(key: string) {
   return `${key.slice(0, 6)}…${key.slice(-4)}`;
 }
 
+function trimTrailingZeros(input: string): string {
+  if (!input.includes(".")) return input;
+  return input.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
+}
+
 export function PortalView(props: {
   // Optional hook to your real presence verifier (FaceID / passkey)
   onVerifyOwnerPresence?: (purpose: "OPEN" | "CLOSE") => Promise<{ ok: boolean; proof?: unknown }>;
@@ -187,15 +192,13 @@ export function PortalView(props: {
     if (res.matchedInvoice && settlement.invoiceId) {
       await PortalDB.setInvoiceStatus(settlement.invoiceId, "SETTLED");
       if (settlement.invoiceId === activeInvoiceId) {
-        setActiveInvoiceUrl(null);
-        setActiveInvoiceId(null);
-        setQrOpen(false);
+        clearActiveInvoice();
       }
     }
 
     setMsg(res.note);
     await store.refresh();
-  }, [activeInvoiceId, store]);
+  }, [activeInvoiceId, clearActiveInvoice, store]);
 
   // Local broadcast ingest (optional, but great for multi-tab / companion-wallet flows)
   React.useEffect(() => {
@@ -313,12 +316,10 @@ export function PortalView(props: {
     await PortalDB.putSession(closedSession);
     await store.refresh();
 
-    setActiveInvoiceUrl(null);
-    setActiveInvoiceId(null);
-    setQrOpen(false);
+    clearActiveInvoice();
 
     setMsg("Portal CLOSED and Settlement Glyph minted.");
-  }, [props.onVerifyOwnerPresence, store]);
+  }, [clearActiveInvoice, props.onVerifyOwnerPresence, store]);
 
   const downloadPatchedMerchantGlyph = useCallback(async () => {
     if (!store.session) return;
@@ -354,13 +355,20 @@ export function PortalView(props: {
     await store.refresh();
   }, [store]);
 
+  const clearActiveInvoice = useCallback((note?: string) => {
+    setActiveInvoiceUrl(null);
+    setActiveInvoiceId(null);
+    setQrOpen(false);
+    if (note) setMsg(note);
+  }, []);
+
   const handleToggleUnit = useCallback((next: UnitMode) => {
     if (next === primaryUnit) return;
     if (next === "usd" && !rateAvailable) return;
     setPrimaryUnit(next);
     const nextValue = next === "phi"
       ? phiInputFromMicroPhi(microPhi)
-      : formatUsdFromMicroPhi(microPhi, rate.usdPerPhi) ?? amountInput;
+      : trimTrailingZeros(formatUsdFromMicroPhi(microPhi, rate.usdPerPhi) ?? amountInput);
     setAmountInput(nextValue);
   }, [amountInput, microPhi, primaryUnit, rate.usdPerPhi, rateAvailable]);
 
@@ -502,9 +510,14 @@ export function PortalView(props: {
                       {activeInvoiceId ? `Invoice ${activeInvoiceId.slice(0, 6)}…` : "Invoice ready"}
                     </div>
                     <div className="pt-qrPlaceholder">QR appears only in the popover.</div>
-                    <button className="pt-btn" type="button" onClick={() => setQrOpen(true)}>
-                      Open QR
-                    </button>
+                    <div className="pt-actionRow">
+                      <button className="pt-btn" type="button" onClick={() => setQrOpen(true)}>
+                        Open QR
+                      </button>
+                      <button className="pt-btn bad" type="button" onClick={() => clearActiveInvoice("Invoice cleared.")}>
+                        Clear Invoice
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="pt-qrPlaceholder">Create invoice to display QR</div>
