@@ -467,7 +467,7 @@ export function PortalView(props: {
               ΣSig <span className="pt-pillMono">{shortSig(store.stats.kaiSignature)}</span>
             </div>
             <div className="pt-pill pt-pill--aqua">
-              {store.stats.receiveCount} Receives
+              {store.stats.receiveCount} Inhales
             </div>
             <div className="pt-pill pt-pill--gold">
               <PhiGlyph className="pt-phiIcon pt-phiIcon--pill" /> {store.stats.totalPhi}
@@ -513,7 +513,7 @@ export function PortalView(props: {
             <div className="pt-card pt-amountCard">
               <div className="pt-cardInner">
                 <div className="pt-row">
-                  <div className="pt-h1">Charge</div>
+                  <div className="pt-h1">INITIATE INHALE</div>
                   <div className="pt-unitToggle">
                     <button
                       type="button"
@@ -568,10 +568,10 @@ export function PortalView(props: {
                 onClick={() => void createSessionInvoice()}
                 disabled={creatingInvoice}
               >
-                Create QR
+                Exhale QR
               </button>
               <button className="pt-btn" type="button" onClick={() => setScanOpen(true)}>
-                Ingest
+                Inhale
               </button>
             </div>
           </section>
@@ -698,7 +698,7 @@ export function PortalView(props: {
 
       <ScanSheet
         open={scanOpen}
-        title="Ingest Invoice / Receipt"
+        title="Inhale Invoice / Receipt"
         onClose={() => setScanOpen(false)}
         onScannedText={async (text) => {
           await ingestTextOrUrl(text);
