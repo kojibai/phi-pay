@@ -66,8 +66,8 @@ export function PortalView(props: {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const [primaryUnit, setPrimaryUnit] = useState<UnitMode>("phi");
-  const [amountInput, setAmountInput] = useState("0");
+  const [primaryUnit, setPrimaryUnit] = useState<UnitMode>("usd");
+  const [amountInput, setAmountInput] = useState("0.00");
   const [amountMicroPhi, setAmountMicroPhi] = useState(() => microPhiFromPhiInput("0").toString());
   const [memo, setMemo] = useState("");
 
@@ -87,9 +87,7 @@ export function PortalView(props: {
 
   const primaryDisplay = primaryUnit === "phi"
     ? amountInput
-    : amountUsd
-      ? `$${amountUsd}`
-      : "—";
+    : `$${amountUsd ?? amountInput}`;
 
   const secondaryDisplay = primaryUnit === "phi"
     ? amountUsd ? `$${amountUsd}` : "—"
