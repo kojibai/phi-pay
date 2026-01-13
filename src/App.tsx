@@ -85,7 +85,7 @@ export default function App() {
         target="_blank"
         rel="noreferrer"
       >
-        Version {appVersion}
+        {appVersion}
       </a>
     </div>
   );
