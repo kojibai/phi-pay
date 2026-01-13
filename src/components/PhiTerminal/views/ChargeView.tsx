@@ -142,7 +142,7 @@ export function ChargeView(props: {
                   background: "rgba(255,255,255,0.04)",
                   color: "rgba(242,255,252,0.92)",
                   padding: "8px 10px",
-                  fontSize: 10,
+                  fontSize: 10.5,
                   outline: "none",
                 }}
               />

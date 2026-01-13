@@ -38,7 +38,7 @@ export function ScanSheet(props: {
       <div style={sheetStyle} onClick={(e) => e.stopPropagation()}>
         <div style={{ padding: 14, borderBottom: "1px solid rgba(255,255,255,0.10)" }}>
           <div style={{ fontWeight: 900, letterSpacing: "0.02em" }}>{props.title}</div>
-          <div style={{ marginTop: 4, color: "rgba(242,255,252,0.72)", fontSize: 13 }}>
+          <div style={{ marginTop: 4, color: "rgba(242,255,252,0.72)", fontSize: 13.65 }}>
             Scan a receipt QR, or paste a receipt link / JSON / base64url payload.
           </div>
         </div>
@@ -83,7 +83,7 @@ export function ScanSheet(props: {
               background: "rgba(255,255,255,0.04)",
               color: "rgba(242,255,252,0.92)",
               padding: 12,
-              fontSize: 13,
+              fontSize: 13.65,
               lineHeight: 1.35,
               outline: "none",
               resize: "vertical",

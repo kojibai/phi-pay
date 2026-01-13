@@ -39,6 +39,7 @@ export type PhiPortalMetaV1 = Readonly<{
   anchorName?: string;
   anchorHash?: string; // sha256 hex of anchor file text
   anchorKind?: "svg" | "json";
+  anchorSvgText?: string;
 }>;
 
 export type PhiPortalSessionV1 = Readonly<{

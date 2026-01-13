@@ -108,11 +108,15 @@ export async function createArmedPortalSessionFromGlyph(file: File): Promise<{
 }> {
   const anchorText = await file.text();
   const anchorHash = await sha256Hex(anchorText);
+  const anchorSvgText =
+    file.name.toLowerCase().endsWith(".svg") || file.type === "image/svg+xml"
+      ? anchorText
+      : undefined;
 
   let payload: unknown | null = null;
   let anchorKind: "svg" | "json" = "json";
 
-  if (file.name.toLowerCase().endsWith(".svg") || file.type === "image/svg+xml") {
+  if (anchorSvgText) {
     anchorKind = "svg";
     payload = tryParseSvgMetadata(anchorText);
   } else {
@@ -159,6 +163,7 @@ export async function createArmedPortalSessionFromGlyph(file: File): Promise<{
     anchorName: file.name,
     anchorHash,
     anchorKind,
+    anchorSvgText,
   });
 
   const session: PhiPortalSessionV1 = Object.freeze({

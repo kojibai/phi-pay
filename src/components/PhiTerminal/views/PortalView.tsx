@@ -79,6 +79,11 @@ export function PortalView(props: {
   const status = store.session?.meta.status ?? "LOCKED";
   const rateAvailable = Boolean(rate.usdPerPhi && rate.phiPerUsd);
   const microPhi = useMemo(() => BigInt(amountMicroPhi || "0"), [amountMicroPhi]);
+  const sigilSrc = useMemo(() => {
+    const svg = store.session?.meta.anchorSvgText;
+    if (!svg) return null;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  }, [store.session?.meta.anchorSvgText]);
 
   const amountPhi = useMemo(() => phiInputFromMicroPhi(microPhi), [microPhi]);
   const amountUsd = useMemo(() => formatUsdFromMicroPhi(microPhi, rate.usdPerPhi), [microPhi, rate.usdPerPhi]);
@@ -472,6 +477,11 @@ export function PortalView(props: {
             </div>
           </div>
         </div>
+        {sigilSrc ? (
+          <div className="pt-sigilFrame" aria-label="Merchant sigil glyph">
+            <img className="pt-sigilImg" src={sigilSrc} alt="Merchant sigil glyph" />
+          </div>
+        ) : null}
         <div className="pt-headerActions">
           <Pill tone={tone as any} text={status} />
           {status === "OPEN" ? (

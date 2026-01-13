@@ -25,6 +25,7 @@ body,
   --ink: rgba(242, 255, 252, 0.92);
   --inkDim: rgba(242, 255, 252, 0.72);
   --inkFaint: rgba(242, 255, 252, 0.52);
+  --pt-font-scale: 1.05;
 
   --aqua: rgba(55, 255, 228, 1);
   --gold: rgba(255, 231, 160, 1);
@@ -111,7 +112,7 @@ body,
 }
 
 .pt-title{
-  font-size: 10px;
+  font-size: calc(10px * var(--pt-font-scale));
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -122,7 +123,7 @@ body,
 }
 
 .pt-subtitle{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkDim);
   white-space: nowrap;
   overflow: hidden;
@@ -131,7 +132,7 @@ body,
 }
 
 .pt-merchantKey{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkDim);
   background: rgba(0,0,0,0.18);
   border: 1px solid var(--stroke);
@@ -154,7 +155,7 @@ body,
   gap: 6px;
   border-radius: 999px;
   padding: 5px 8px;
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   font-weight: 900;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -230,8 +231,8 @@ body,
 }
 
 .pt-phiIcon--amount{
-  width: 14px;
-  height: 14px;
+  width: 1em;
+  height: 1em;
   margin-left: 4px;
 }
 
@@ -274,7 +275,7 @@ body,
   color: var(--inkDim);
   padding: 8px 10px;
   font-weight: 800;
-  font-size: 9px;
+  font-size: calc(9px * var(--pt-font-scale));
   letter-spacing: 0.04em;
   text-transform: uppercase;
   text-shadow: 0 0 16px rgba(55,255,228,0.12);
@@ -300,7 +301,7 @@ body,
 }
 
 .pt-h1{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 900;
@@ -309,7 +310,7 @@ body,
 }
 
 .pt-amount{
-  font-size: 38px;
+  font-size: calc(38px * var(--pt-font-scale));
   font-weight: 900;
   letter-spacing: -0.03em;
   line-height: 1.0;
@@ -322,7 +323,7 @@ body,
 
 .pt-amountSub{
   margin-top: 6px;
-  font-size: 9px;
+  font-size: calc(9px * var(--pt-font-scale));
   color: var(--inkDim);
 }
 
@@ -349,7 +350,7 @@ body,
   color: var(--ink);
   padding: 8px 10px;
   font-weight: 800;
-  font-size: 10px;
+  font-size: calc(10px * var(--pt-font-scale));
   letter-spacing: 0.06em;
   text-transform: uppercase;
   box-shadow: 0 10px 20px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.05) inset;
@@ -407,7 +408,7 @@ body,
 
 .pt-muted{
   color: var(--inkDim);
-  font-size: 9px;
+  font-size: calc(9px * var(--pt-font-scale));
   letter-spacing: 0.02em;
 }
 
@@ -420,14 +421,14 @@ body,
 
 .pt-k{
   color: var(--inkFaint);
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
 .pt-v{
   color: var(--inkDim);
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   word-break: break-word;
 }
 
@@ -460,7 +461,7 @@ body,
 .pt-itemTitle{
   font-weight: 900;
   letter-spacing: 0.01em;
-  font-size: 10px;
+  font-size: calc(10px * var(--pt-font-scale));
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -469,7 +470,7 @@ body,
 .pt-itemSub{
   margin-top: 4px;
   color: var(--inkDim);
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
 }
 
 .pt-pillRow{
@@ -522,7 +523,7 @@ body,
 }
 
 .pt-merchantLabel{
-  font-size: 11px;
+  font-size: calc(11px * var(--pt-font-scale));
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -538,14 +539,14 @@ body,
 }
 
 .pt-merchantKey{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkDim);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .pt-merchantMeta{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkFaint);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -559,19 +560,41 @@ body,
   justify-content: flex-end;
 }
 
+.pt-sigilFrame{
+  width: clamp(64px, 14vw, 120px);
+  height: clamp(64px, 14vw, 120px);
+  border-radius: 18px;
+  border: 1px solid rgba(55,255,228,0.18);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(55,255,228,0.18), rgba(55,255,228,0.02)),
+    rgba(0,0,0,0.2);
+  box-shadow: 0 18px 34px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  padding: clamp(8px, 1.5vw, 14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pt-sigilImg{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(55,255,228,0.18));
+}
+
 .pt-iconBtn{
   border: 1px solid var(--stroke);
   background: rgba(255,255,255,0.04);
   color: var(--inkDim);
   border-radius: 999px;
   padding: 4px 8px;
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   font-weight: 700;
 }
 
 .pt-btnCompact{
   padding: 6px 9px;
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
 }
 
 .pt-portalMain{
@@ -632,7 +655,7 @@ body,
 }
 
 .pt-amountPrimary{
-  font-size: 31px;
+  font-size: calc(31px * var(--pt-font-scale));
   font-weight: 900;
   letter-spacing: -0.03em;
   text-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 28px rgba(55,255,228,0.12);
@@ -642,7 +665,7 @@ body,
 }
 
 .pt-amountSecondary{
-  font-size: 10px;
+  font-size: calc(10px * var(--pt-font-scale));
   color: var(--inkDim);
   letter-spacing: 0.04em;
   display: inline-flex;
@@ -664,7 +687,7 @@ body,
   background: transparent;
   color: var(--inkDim);
   font-weight: 800;
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   padding: 3px 8px;
   border-radius: 999px;
 }
@@ -682,7 +705,7 @@ body,
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkFaint);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -692,7 +715,7 @@ body,
   padding: 2px 5px;
   border-radius: 999px;
   border: 1px solid var(--stroke);
-  font-size: 7px;
+  font-size: calc(7px * var(--pt-font-scale));
   color: var(--inkDim);
 }
 
@@ -717,7 +740,7 @@ body,
   background: rgba(255,255,255,0.04);
   color: var(--ink);
   padding: 6px 8px;
-  font-size: 9px;
+  font-size: calc(9px * var(--pt-font-scale));
   outline: none;
 }
 
@@ -743,7 +766,7 @@ body,
   color: rgba(55,255,228,0.95);
   padding: 4px 8px;
   font-weight: 800;
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -767,7 +790,7 @@ body,
   color: var(--ink);
   padding: 8px 0;
   font-weight: 900;
-  font-size: 11px;
+  font-size: calc(11px * var(--pt-font-scale));
 }
 
 .pt-actionRow{
@@ -790,7 +813,7 @@ body,
 }
 
 .pt-qrReadyTitle{
-  font-size: 9px;
+  font-size: calc(9px * var(--pt-font-scale));
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -813,7 +836,7 @@ body,
 }
 
 .pt-qrPlaceholder{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkFaint);
   padding: 16px 0;
 }
@@ -849,7 +872,7 @@ body,
 }
 
 .pt-qrModalTitle{
-  font-size: 9px;
+  font-size: calc(9px * var(--pt-font-scale));
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -864,7 +887,7 @@ body,
   height: 26px;
   display: grid;
   place-items: center;
-  font-size: 11px;
+  font-size: calc(11px * var(--pt-font-scale));
   font-weight: 700;
 }
 
@@ -880,7 +903,7 @@ body,
 }
 
 .pt-qrModalHint{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkDim);
 }
 
@@ -906,19 +929,19 @@ body,
 
 .pt-receiptAmount{
   font-weight: 800;
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
 .pt-receiptMeta{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkDim);
 }
 
 .pt-statusMessage{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkDim);
 }
 
@@ -952,7 +975,7 @@ body,
 }
 
 .pt-modalTitle{
-  font-size: 10px;
+  font-size: calc(10px * var(--pt-font-scale));
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -962,7 +985,7 @@ body,
   display: grid;
   grid-template-columns: 90px 1fr;
   gap: 6px 10px;
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
 }
 
 .pt-modalActions{
@@ -1003,7 +1026,7 @@ body,
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  font-size: 10px;
+  font-size: calc(10px * var(--pt-font-scale));
 }
 
 .pt-payActions{
@@ -1013,7 +1036,7 @@ body,
 }
 
 .pt-payHint{
-  font-size: 8px;
+  font-size: calc(8px * var(--pt-font-scale));
   color: var(--inkDim);
 }
 
@@ -1021,12 +1044,12 @@ body,
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 9px;
+  font-size: calc(9px * var(--pt-font-scale));
 }
 
 @media (max-width: 480px){
   .pt-amountPrimary{
-    font-size: 25px;
+    font-size: calc(25px * var(--pt-font-scale));
   }
   .pt-padBtn{
     padding: 7px 0;
