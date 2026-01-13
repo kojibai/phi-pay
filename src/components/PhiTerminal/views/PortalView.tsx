@@ -18,6 +18,8 @@ import { usePhiUsd } from "../pricing/usePhiUsd";
 import { PhiGlyph } from "../ui/PhiGlyph";
 import {
   formatUsdFromMicroPhi,
+  formatPhiDisplay,
+  formatPhiFromMicroPhi,
   microPhiFromPhiInput,
   microPhiFromUsdCents,
   phiInputFromMicroPhi,
@@ -84,14 +86,14 @@ export function PortalView(props: {
   const amountUsd = useMemo(() => formatUsdFromMicroPhi(microPhi, rate.usdPerPhi), [microPhi, rate.usdPerPhi]);
 
   const primaryDisplay = primaryUnit === "phi"
-    ? amountPhi
+    ? amountInput
     : amountUsd
       ? `$${amountUsd}`
       : "—";
 
   const secondaryDisplay = primaryUnit === "phi"
     ? amountUsd ? `$${amountUsd}` : "—"
-    : amountPhi;
+    : formatPhiFromMicroPhi(microPhi);
 
   const applyAmountInput = useCallback((nextValue: string, unit = primaryUnit) => {
     setAmountInput(nextValue);
@@ -531,12 +533,12 @@ export function PortalView(props: {
                   </div>
                 </div>
                 <div className="pt-amountPrimary">
-                  {primaryDisplay}
                   {primaryUnit === "phi" ? <PhiGlyph className="pt-phiIcon pt-phiIcon--amount" /> : null}
+                  {primaryDisplay}
                 </div>
                 <div className="pt-amountSecondary">
-                  {secondaryDisplay}
                   {primaryUnit === "usd" ? <PhiGlyph className="pt-phiIcon pt-phiIcon--amount" /> : null}
+                  {secondaryDisplay}
                 </div>
                 <div className="pt-rateLine">
                   Rate: {rateAvailable ? `$${(rate.usdPerPhi ?? 0).toFixed(4)} /` : "—"}
@@ -606,7 +608,8 @@ export function PortalView(props: {
                 ) : recentReceipts.map((r) => (
                   <div className="pt-receiptChip" key={r.settlementId}>
                     <div className="pt-receiptAmount">
-                      {r.amountPhi} <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                      <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                      {formatPhiDisplay(r.amountPhi)}
                     </div>
                     <div className="pt-receiptMeta">{r.fromPhiKey.slice(0, 6)}…</div>
                   </div>

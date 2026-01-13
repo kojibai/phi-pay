@@ -105,6 +105,8 @@ export function ChargeView(props: {
     return () => off();
   }, [activeInvoiceId]);
 
+  const amountDisplay = amountPhi === "0" ? "0.0000" : amountPhi;
+
   return (
     <div className="pt-split">
       <div className="pt-card pt-scroll">
@@ -112,7 +114,8 @@ export function ChargeView(props: {
           <div className="pt-h1">Charge</div>
 
           <div className="pt-amount">
-            {amountPhi} <PhiGlyph className="pt-phiIcon pt-phiIcon--amount" />
+            <PhiGlyph className="pt-phiIcon pt-phiIcon--amount" />
+            {amountDisplay}
           </div>
           <div className="pt-amountSub">
             {status === "READY" && "Set amount, then request payment."}
