@@ -10,7 +10,6 @@ import { Pill } from "../ui/Pill";
 import { listenLocalChannel } from "../transport/broadcastChannelTransport";
 import { deriveSettlementFromSendSigilFileForInvoices, markSendSigilUsedFromMeta } from "../transport/sigilSettlement";
 import { PhiGlyph } from "../ui/PhiGlyph";
-import { formatPhiDisplay } from "../pricing/amountModel";
 
 export function ChargeView(props: {
   merchantPhiKey: string;
@@ -114,7 +113,7 @@ export function ChargeView(props: {
 
           <div className="pt-amount">
             <PhiGlyph className="pt-phiIcon pt-phiIcon--amount" />
-            {formatPhiDisplay(amountPhi)}
+            {amountPhi}
           </div>
           <div className="pt-amountSub">
             {status === "READY" && "Set amount, then request payment."}

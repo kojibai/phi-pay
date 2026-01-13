@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  formatPhiDisplay,
-  normalizePhiInput,
-  normalizeUsdInput,
-  type UnitMode,
-} from "../pricing/amountModel";
+import { normalizePhiInput, normalizeUsdInput, type UnitMode } from "../pricing/amountModel";
 import { PhiGlyph } from "./PhiGlyph";
 
 function addDigit(current: string, d: string, mode: UnitMode): string {
@@ -52,7 +47,7 @@ export function AmountPad(props: {
             ) : (
               <>
                 <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
-                {formatPhiDisplay(q)}
+                {q}
               </>
             )}
           </button>

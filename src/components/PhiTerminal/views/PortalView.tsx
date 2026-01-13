@@ -86,7 +86,7 @@ export function PortalView(props: {
   const amountUsd = useMemo(() => formatUsdFromMicroPhi(microPhi, rate.usdPerPhi), [microPhi, rate.usdPerPhi]);
 
   const primaryDisplay = primaryUnit === "phi"
-    ? formatPhiFromMicroPhi(microPhi)
+    ? amountInput
     : amountUsd
       ? `$${amountUsd}`
       : "—";
@@ -470,7 +470,7 @@ export function PortalView(props: {
               {store.stats.receiveCount} Receives
             </div>
             <div className="pt-pill pt-pill--gold">
-              <PhiGlyph className="pt-phiIcon pt-phiIcon--pill" /> {formatPhiDisplay(store.stats.totalPhi)}
+              <PhiGlyph className="pt-phiIcon pt-phiIcon--pill" /> {store.stats.totalPhi}
             </div>
           </div>
         </div>
