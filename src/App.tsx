@@ -27,7 +27,21 @@ const panelStyle: React.CSSProperties = {
   background: "#0A1216"
 };
 
+const versionBadgeStyle: React.CSSProperties = {
+  position: "fixed",
+  right: "16px",
+  bottom: "12px",
+  fontSize: "12px",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "#9FB2BF",
+  textDecoration: "none",
+  opacity: 0.75,
+  zIndex: 10
+};
+
 export default function App() {
+  const appVersion = "v1.0.0";
   const {
     needRefresh,
     updateServiceWorker
@@ -54,6 +68,14 @@ export default function App() {
       <div style={panelStyle}>
         {hasInvoiceParam ? <PayView /> : <PortalView />}
       </div>
+      <a
+        href="https://github.com/kojibai/phi-pay"
+        style={versionBadgeStyle}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Version {appVersion}
+      </a>
     </div>
   );
 }
