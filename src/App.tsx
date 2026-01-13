@@ -40,7 +40,7 @@ const versionBadgeStyle: React.CSSProperties = {
   background: "rgba(10, 18, 22, 0.85)",
   backdropFilter: "blur(6px)",
   boxShadow: "0 8px 20px rgba(0, 0, 0, 0.35)",
-  fontSize: "12px",
+  fontSize: "8px",
   fontWeight: 600,
   lineHeight: 1,
   letterSpacing: "0.08em",
