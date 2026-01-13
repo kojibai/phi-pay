@@ -10,6 +10,7 @@ import { Pill } from "../ui/Pill";
 import { listenLocalChannel } from "../transport/broadcastChannelTransport";
 import { deriveSettlementFromSendSigilFileForInvoices, markSendSigilUsedFromMeta } from "../transport/sigilSettlement";
 import { PhiGlyph } from "../ui/PhiGlyph";
+import { formatPhiDisplay } from "../pricing/amountModel";
 
 export function ChargeView(props: {
   merchantPhiKey: string;
@@ -31,11 +32,12 @@ export function ChargeView(props: {
   const buildInvoice = useCallback(async () => {
     // createdPulse is optional in your world; this terminal stays protocol-correct without requiring it.
     const createdPulse = 0;
+    const invoiceAmountPhi = formatPhiDisplay(amountPhi, 4);
 
     const inv = await createInvoice({
       merchantPhiKey: props.merchantPhiKey,
       merchantLabel: props.merchantLabel,
-      amountPhi,
+      amountPhi: invoiceAmountPhi,
       memo: memo.trim() || undefined,
       createdPulse,
     });
@@ -105,7 +107,7 @@ export function ChargeView(props: {
     return () => off();
   }, [activeInvoiceId]);
 
-  const amountDisplay = amountPhi === "0" ? "0.0000" : amountPhi;
+  const amountDisplay = formatPhiDisplay(amountPhi, 4);
 
   return (
     <div className="pt-split">
