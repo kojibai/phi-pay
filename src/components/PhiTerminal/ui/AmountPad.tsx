@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  formatPhiDisplay,
   normalizePhiInput,
   normalizeUsdInput,
   type UnitMode,
@@ -50,7 +51,8 @@ export function AmountPad(props: {
               `$${q}`
             ) : (
               <>
-                {q} <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                {formatPhiDisplay(q)}
               </>
             )}
           </button>

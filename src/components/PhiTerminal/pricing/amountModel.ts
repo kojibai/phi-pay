@@ -21,6 +21,24 @@ export function normalizeUsdInput(raw: string): string {
   return normalizeNumericInput(raw, 2);
 }
 
+export function formatPhiFromMicroPhi(microPhi: bigint, decimals = 4): string {
+  const safeDecimals = Math.max(0, Math.min(6, Math.floor(decimals)));
+  const neg = microPhi < 0n;
+  const value = neg ? -microPhi : microPhi;
+  const trimScale = 10n ** BigInt(6 - safeDecimals);
+  const rounded = trimScale === 1n ? value : (value + trimScale / 2n) / trimScale;
+  const divisor = 10n ** BigInt(safeDecimals);
+  const int = rounded / divisor;
+  const dec = rounded % divisor;
+  const decPart = safeDecimals > 0 ? `.${dec.toString().padStart(safeDecimals, "0")}` : "";
+  const out = `${int.toString()}${decPart}`;
+  return neg ? `-${out}` : out;
+}
+
+export function formatPhiDisplay(raw: string, decimals = 4): string {
+  return formatPhiFromMicroPhi(microPhiFromPhiInput(raw), decimals);
+}
+
 export function microPhiFromPhiInput(raw: string): bigint {
   const s = normalizePhiInput(raw).trim();
   if (!/^\d+(\.\d*)?$/.test(s)) return 0n;

@@ -10,6 +10,7 @@ import {
   markSendSigilUsedFromMeta,
 } from "../transport/sigilSettlement";
 import { PhiGlyph } from "../ui/PhiGlyph";
+import { formatPhiDisplay } from "../pricing/amountModel";
 
 type PayStatus = "WAITING" | "SETTLED" | "ERROR";
 
@@ -50,7 +51,7 @@ export function PayView() {
 
   const amountDisplay = useMemo(() => {
     if (!invoice) return "—";
-    return `${invoice.amount.phi}`;
+    return formatPhiDisplay(invoice.amount.phi);
   }, [invoice]);
 
   const handleReceiptFile = useCallback(async (file: File) => {
@@ -111,8 +112,9 @@ export function PayView() {
               </div>
               <div className="pt-payRow">
                 <span className="pt-muted">Amount</span>
-                <span>
-                  {amountDisplay} <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                <span className="pt-inlineAmount">
+                  <PhiGlyph className="pt-phiIcon pt-phiIcon--inline" />
+                  {amountDisplay}
                 </span>
               </div>
               {invoice.memo ? (
